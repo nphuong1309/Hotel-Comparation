@@ -31,20 +31,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt_room->execute([$hotel_id, 2, $price_2]);
             $stmt_room->execute([$hotel_id, 4, $price_4]);
 
-            // Xử lý File Upload (Lưu vào bảng hotel_images)
+            // ... (code INSERT bảng hotels và rooms giữ nguyên) ...
+
+            // Xử lý File Upload (Không dùng Database nữa)
             if (!empty($_FILES['images']['name'][0])) {
                 $upload_dir = 'uploads/';
-                $stmt_img = $pdo->prepare("INSERT INTO hotel_images (hotel_id, image_url, is_primary) VALUES (?, ?, ?)");
-                
+    
                 foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
-                    $file_name = time() . '_' . $_FILES['images']['name'][$key];
-                    $target = $upload_dir . $file_name;
-                    
-                    if (move_uploaded_file($tmp_name, $target)) {
-                        $is_primary = ($key == 0) ? 1 : 0; // Ảnh đầu tiên là ảnh bìa
-                        $stmt_img->execute([$hotel_id, $target, $is_primary]);
-                    }
+                // Lấy đuôi file (jpg, png...)
+                $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
+        
+                // Ảnh đầu tiên (key == 0) sẽ làm ảnh bìa
+                if ($key == 0) {
+                    $file_name = "hotel_" . $hotel_id . "_primary." . $ext;
+                } else {
+                // Các ảnh sau đánh số ngẫu nhiên theo thời gian
+                    $file_name = "hotel_" . $hotel_id . "_" . time() . "_" . $key . "." . $ext;
                 }
+        
+                $target = $upload_dir . $file_name;
+                move_uploaded_file($tmp_name, $target);
+            }
             }
 
             $pdo->commit();

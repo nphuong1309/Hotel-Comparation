@@ -105,5 +105,38 @@ $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const budgetRange = document.getElementById("budgetRange");
+    const budgetValue = document.getElementById("budgetValue");
 
+    if (!budgetRange) return;
+
+    function updateBudgetRange() {
+        const min = Number(budgetRange.min);
+        const max = Number(budgetRange.max);
+        const value = Number(budgetRange.value);
+
+        const percent = ((value - min) / (max - min)) * 100;
+
+        budgetRange.style.background = `
+            linear-gradient(
+                to right,
+                #FFD6BF 0%,
+                #FF7A59 ${percent}%,
+                #FFFFFF ${percent}%,
+                #FFFFFF 100%
+            )
+        `;
+
+        if (budgetValue) {
+            budgetValue.textContent = value.toLocaleString("vi-VN");
+        }
+    }
+
+    budgetRange.addEventListener("input", updateBudgetRange);
+    updateBudgetRange();
+});
+</script>
 <?php require_once 'includes/footer.php'; ?>
+
