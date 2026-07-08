@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         img.src = images[currentIndex];
                         img.style.opacity = 1;
                     }, 150);
-                }, 30000); // Đổi ảnh mỗi 3 giây
+                }, 3000); // Đổi ảnh mỗi 3 giây
             }
         }
     });
