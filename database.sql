@@ -4,6 +4,7 @@ USE minihotel;
 -- Xóa các bảng cũ nếu đã tồn tại để làm sạch dữ liệu
 DROP TABLE IF EXISTS `feed_comments`,
 `feed_posts`,
+`comparison_history`,
 `hotel_amenities`,
 `amenities`,
 `rooms`,
@@ -64,14 +65,25 @@ CREATE TABLE `hotel_amenities` (
 CREATE TABLE `feed_posts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `author_name` varchar(100) NOT NULL,
+  `author_id` int(11) DEFAULT NULL,
   `hotel_id` int(11) DEFAULT NULL COMMENT 'Khách sạn được review',
   `content` text NOT NULL,
   `image_url` varchar(255) DEFAULT NULL,
   `likes_count` int(11) DEFAULT 0,
   `created_at` timestamp DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  FOREIGN KEY (`hotel_id`) REFERENCES `hotels`(`id`) ON DELETE
+  FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON DELETE
+  SET NULL,
+    FOREIGN KEY (`hotel_id`) REFERENCES `hotels`(`id`) ON DELETE
   SET NULL
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+CREATE TABLE `comparison_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `hotel_ids` varchar(255) NOT NULL,
+  `created_at` timestamp DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 -- Bảng lưu Bình luận (Comments)
 CREATE TABLE `feed_comments` (
@@ -346,3 +358,19 @@ VALUES (1, 1),
   (9, 6),
   (10, 4),
   (10, 5);
+-- Bảng lưu lịch sử so sánh
+CREATE TABLE IF NOT EXISTS `comparison_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `hotel_ids` varchar(255) NOT NULL COMMENT 'Danh sách ID khách sạn, cách nhau bởi dấu phẩy',
+  `created_at` timestamp DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+-- Liên kết bài đăng cộng đồng với tài khoản (để lọc chính xác "bài đăng của tôi")
+ALTER TABLE feed_posts
+ADD COLUMN author_id INT NULL
+AFTER author_name;
+ALTER TABLE feed_posts
+ADD FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE
+SET NULL;
