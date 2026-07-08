@@ -61,7 +61,7 @@ body {
 }
 
 .btn-login {
-    background: #FF7A59;
+    background: #df6040;
     color: #fff !important;
     padding: 8px 15px;
     border-radius: 5px;
@@ -77,8 +77,8 @@ body {
 }
 
 .btn-register {
-    background: #FFD6BF;
-    color: #130358 !important;
+    background: #df6040;
+    color: #f7f6fc !important;
     padding: 8px 15px;
     border-radius: 5px;
 }
@@ -127,13 +127,13 @@ body {
 }
 
 .range-group label span {
-    color: #FF7A59;
+    color: #df6040;
     font-weight: 700;
 }
 
 /* Nút bấm */
 .btn-primary {
-    background: #FF7A59;
+    background: #df6040;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -168,7 +168,7 @@ body {
 }
 
 .price {
-    color: #FF7A59;
+    color: #df6040;
     font-weight: 700;
 }
 
@@ -181,7 +181,7 @@ body {
 }
 
 .compare-checkbox input {
-    accent-color: #FF7A59;
+    accent-color: #df6040;
 }
 
 .hotel-card img {
@@ -274,8 +274,8 @@ body {
 
 .page-link.active,
 .page-link:hover {
-    background: #FF7A59;
-    border-color: #FF7A59;
+    background: #df6040;
+    border-color: #df6040;
     color: #fff;
 }
 
@@ -330,7 +330,7 @@ body {
     height: 16px;
     margin-top: -5px;
     border-radius: 50%;
-    background: #FF7A59;
+    background: #db4c28;
     border: 2px solid #FFF4E6;
     cursor: pointer;
     -webkit-appearance: none;
@@ -347,7 +347,7 @@ body {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #FF7A59;
+    background: #d44a27;
     border: 2px solid #FFF4E6;
     cursor: pointer;
 }
@@ -355,4 +355,11 @@ body {
 /* Viền thanh ngân sách */
 #budgetRange {
     box-shadow: 0 0 0 1px #fec5b0;
+}
+
+.nav-content nav a,
+.nav-content nav span,
+.nav-content nav b,
+.nav-content nav strong {
+    color: #FFFFFF !important;
 }
