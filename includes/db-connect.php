@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$dbname = 'minihotel';
+$dbname = 'hoteltool';
 $user = 'root';
 $pass = '';
 
