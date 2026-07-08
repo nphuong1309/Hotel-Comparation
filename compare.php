@@ -7,8 +7,16 @@ if (empty($_GET['hotel_ids'])) {
 }
 
 $ids = $_GET['hotel_ids'];
+if (!is_array($ids)) {
+    $ids = array_filter(array_map('trim', explode(',', $ids)));
+}
+
 // Giới hạn hiển thị 5 khách sạn để tránh vỡ giao diện
-$ids = array_slice($ids, 0, 5); 
+$ids = array_slice(array_values($ids), 0, 5);
+if (isset($_SESSION['user_id'])) {
+    $stmt_log = $pdo->prepare("INSERT INTO comparison_history (user_id, hotel_ids) VALUES (?, ?)");
+    $stmt_log->execute([$_SESSION['user_id'], implode(',', $ids)]);
+}
 $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
 $sql = "SELECT h.id, h.name, h.vibe, hi.image_url,
@@ -33,7 +41,7 @@ $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <table class="compare-table">
         <tr>
             <th>Tiêu chí</th>
-            <?php foreach($hotels as $h): ?>
+            <?php foreach ($hotels as $h): ?>
                 <th>
                     <img src="<?= htmlspecialchars($h['image_url']) ?>" width="100%"><br>
                     <?= htmlspecialchars($h['name']) ?>
@@ -42,25 +50,25 @@ $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tr>
         <tr>
             <td>Giá phòng 2 người</td>
-            <?php foreach($hotels as $h): ?>
+            <?php foreach ($hotels as $h): ?>
                 <td><?= number_format($h['price_2']) ?> đ</td>
             <?php endforeach; ?>
         </tr>
         <tr>
             <td>Giá phòng 4 người</td>
-            <?php foreach($hotels as $h): ?>
+            <?php foreach ($hotels as $h): ?>
                 <td><?= number_format($h['price_4']) ?> đ</td>
             <?php endforeach; ?>
         </tr>
         <tr>
             <td>Phong cách</td>
-            <?php foreach($hotels as $h): ?>
+            <?php foreach ($hotels as $h): ?>
                 <td><?= htmlspecialchars($h['vibe']) ?></td>
             <?php endforeach; ?>
         </tr>
         <tr>
             <td>Tiện nghi</td>
-            <?php foreach($hotels as $h): ?>
+            <?php foreach ($hotels as $h): ?>
                 <td><?= htmlspecialchars($h['amenities']) ?></td>
             <?php endforeach; ?>
         </tr>
