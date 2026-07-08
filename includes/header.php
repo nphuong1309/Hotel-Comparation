@@ -1,11 +1,14 @@
+<?php if (session_status() === PHP_SESSION_NONE) session_start(); ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiniHotel Aggregator</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <header class="navbar">
         <div class="container nav-content">
@@ -15,6 +18,23 @@
                 <!-- Thêm menu Cộng đồng vào đây -->
                 <a href="community.php" style="color: var(--primary); font-weight: bold;">🌍 Cộng đồng</a>
                 <a href="login.php" class="btn-login">Admin</a>
+
+                <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'admin'): ?>
+                    <!-- Đã đăng nhập với quyền ADMIN -->
+                    <span>Xin chào, <b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
+                    <a href="admin.php" class="btn-login">Quản trị</a>
+                    <a href="logout.php" class="btn-outline">Đăng xuất</a>
+
+                <?php elseif (isset($_SESSION['user_id'])): ?>
+                    <!-- Đã đăng nhập với quyền CUSTOMER -->
+                    <span>Xin chào, <b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
+                    <a href="logout.php" class="btn-outline">Đăng xuất</a>
+
+                <?php else: ?>
+                    <!-- Chưa đăng nhập -->
+                    <a href="login.php">Đăng nhập</a>
+                    <a href="register.php" class="btn-register">Đăng ký</a>
+                <?php endif; ?>
             </nav>
         </div>
     </header>

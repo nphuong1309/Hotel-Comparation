@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS minihotel DEFAULT CHARACTER SET utf8mb4 COLLATE ut
 USE minihotel;
 
 -- Xóa các bảng cũ nếu đã tồn tại để làm sạch dữ liệu
-DROP TABLE IF EXISTS `hotel_amenities`, `amenities`, `rooms`, `hotel_images`, `hotels`, `users`;
+DROP TABLE IF EXISTS `feed_comments`, `feed_posts`, `hotel_amenities`, `amenities`, `rooms`, `hotel_images`, `hotels`, `users`;
 
 -- ==========================================
 -- 1. TẠO BẢNG & RÀNG BUỘC (SCHEMA)
@@ -12,9 +12,11 @@ DROP TABLE IF EXISTS `hotel_amenities`, `amenities`, `rooms`, `hotel_images`, `h
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
+  `email` varchar(150) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('admin','customer') DEFAULT 'customer',
-  PRIMARY KEY (`id`)
+  `role` enum('admin', 'customer') DEFAULT 'customer',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_users_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `hotels` (
@@ -88,9 +90,9 @@ CREATE TABLE `feed_comments` (
 -- 2. THÊM DỮ LIỆU MẪU (SAMPLE DATA)
 -- ==========================================
 
--- Thêm tài khoản Admin (Mật khẩu: 123456)
-INSERT INTO `users` (`username`, `password`, `role`) VALUES
-('admin', '123456', 'admin');
+-- Tài khoản admin mặc định: 123456
+INSERT INTO `users` (`username`, `email`, `password`, `role`) VALUES
+('admin', 'admin@minihotel.local', '$2y$10$LZ4fRDfGbEk3A6vDCdYP5e09uqfqbkO1nmR6.rvJs3vKMVF0IIDLS', 'admin');
 
 -- Thêm 10 Khách sạn đa dạng Vibe
 INSERT INTO `hotels` (`id`, `name`, `address`, `star_rating`, `vibe`, `description`) VALUES
@@ -143,9 +145,12 @@ INSERT INTO `rooms` (`hotel_id`, `capacity`, `price`) VALUES
 
 -- Thêm Kho Tiện nghi
 INSERT INTO `amenities` (`id`, `name`) VALUES
-(1, 'Hồ bơi vô cực'), (2, 'Buffet sáng'), 
-(3, 'Spa & Massage'), (4, 'Bãi đậu xe miễn phí'), 
-(5, 'Wifi tốc độ cao'), (6, 'Sân vườn/BBQ');
+(1, 'Hồ bơi vô cực'),
+(2, 'Buffet sáng'),
+(3, 'Spa & Massage'),
+(4, 'Bãi đậu xe miễn phí'),
+(5, 'Wifi tốc độ cao'),
+(6, 'Sân vườn/BBQ');
 
 -- Gắn tiện nghi cho Khách sạn
 INSERT INTO `hotel_amenities` (`hotel_id`, `amenity_id`) VALUES
@@ -159,4 +164,3 @@ INSERT INTO `hotel_amenities` (`hotel_id`, `amenity_id`) VALUES
 (8, 4), (8, 5),
 (9, 1), (9, 2), (9, 6),
 (10, 4), (10, 5);
-

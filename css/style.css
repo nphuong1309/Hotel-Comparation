@@ -187,6 +187,24 @@ body {
     text-align: center;
 }
 
+/* style.css - thêm mới */
+.btn-register {
+    background: #fff;
+    color: var(--primary) !important;
+    border: 1px solid var(--primary);
+    padding: 8px 15px;
+    border-radius: 5px;
+}
+
+.nav-divider {
+    display: inline-block;
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 10px;
+    vertical-align: middle;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     #smartSearchForm {
