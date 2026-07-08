@@ -12,10 +12,10 @@ $hotel = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$hotel) { die("Khách sạn không tồn tại."); }
 
-// 2. Lấy hình ảnh
-$stmt_img = $pdo->prepare("SELECT image_url FROM hotel_images WHERE hotel_id = ?");
-$stmt_img->execute([$id]);
-$images = $stmt_img->fetchAll(PDO::FETCH_ASSOC);
+// 2. Lấy hình ảnh bằng cách QUÉT THƯ MỤC (Xóa lệnh SQL lấy ảnh cũ)
+// Tìm tất cả file bắt đầu bằng hotel_{id}_
+$image_pattern = "uploads/hotel_" . $id . "_*.*";
+$images = glob($image_pattern);
 
 // 3. Lấy phòng & giá
 $stmt_room = $pdo->prepare("SELECT * FROM rooms WHERE hotel_id = ?");
@@ -31,10 +31,15 @@ $amenities = $stmt_amen->fetchAll(PDO::FETCH_ASSOC);
 <div class="detail-container" style="background: #fff; padding: 20px; border-radius: 8px; margin-top: 20px;">
     <!-- Khu vực 1: Banner / Hình ảnh -->
     <div class="hotel-gallery" style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px;">
-        <?php foreach($images as $img): ?>
-            <img src="<?= htmlspecialchars($img['image_url']) ?>" style="height: 300px; border-radius: 8px; object-fit: cover;">
+    <?php if (count($images) > 0): ?>
+        <?php foreach($images as $img_path): ?>
+            <img src="<?= htmlspecialchars($img_path) ?>" style="height: 300px; border-radius: 8px; object-fit: cover;">
         <?php endforeach; ?>
-    </div>
+    <?php else: ?>
+        <!-- Nếu thư mục không có ảnh nào, hiển thị ảnh mặc định -->
+        <img src="https://via.placeholder.com/600x400?text=No+Image" style="height: 300px; border-radius: 8px; object-fit: cover;">
+    <?php endif; ?>
+</div>
 
     <!-- Khu vực 2: Thông tin chung -->
     <h1><?= htmlspecialchars($hotel['name']) ?></h1>

@@ -7,10 +7,19 @@ require_once 'includes/header.php';
 // Xử lý Xóa khách sạn
 if (isset($_GET['delete'])) {
     $del_id = $_GET['delete'];
-    // Nhờ ON DELETE CASCADE trong DB, xóa khách sạn sẽ tự xóa luôn phòng, tiện nghi và ảnh.
+    
+    // 1. Quét và xóa toàn bộ ảnh vật lý của khách sạn này trong thư mục uploads/
+    $images_to_delete = glob("uploads/hotel_" . $del_id . "_*.*");
+    foreach($images_to_delete as $img_file) {
+        if(is_file($img_file)) {
+            unlink($img_file);
+        }
+    }
+
+    // 2. Xóa dữ liệu trong Database
     $stmt = $pdo->prepare("DELETE FROM hotels WHERE id = ?");
     $stmt->execute([$del_id]);
-    echo "<script>alert('Đã xóa thành công!'); window.location.href='admin.php';</script>";
+    echo "<script>alert('Đã xóa khách sạn và dọn dẹp thư mục ảnh thành công!'); window.location.href='admin.php';</script>";
 }
 
 // Lấy danh sách

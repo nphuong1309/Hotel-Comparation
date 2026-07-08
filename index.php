@@ -3,15 +3,14 @@ require_once 'includes/db-connect.php';
 require_once 'includes/header.php';
 
 // Lấy danh sách khách sạn và nhóm các ảnh lại thành chuỗi để JS làm hiệu ứng chuyển ảnh
+// Câu SQL MỚI cho index.php
 $sql = "SELECT h.id, h.name, h.address, h.description, h.vibe, 
-        MIN(r.price) as min_price,
-        GROUP_CONCAT(hi.image_url SEPARATOR ',') as images
+        MIN(r.price) as min_price
         FROM hotels h
         LEFT JOIN rooms r ON h.id = r.hotel_id
-        LEFT JOIN hotel_images hi ON h.id = hi.hotel_id
-        GROUP BY h.id";
-$stmt = $pdo->query($sql);
-$hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        GROUP BY h.id
+        ORDER BY h.id DESC
+        LIMIT :limit OFFSET :offset";
 ?>
 
 <!-- Form Gợi ý thông minh -->

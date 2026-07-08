@@ -60,6 +60,29 @@ CREATE TABLE `hotel_amenities` (
   FOREIGN KEY (`amenity_id`) REFERENCES `amenities`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Bảng lưu Bài đăng (Feed Posts)
+CREATE TABLE `feed_posts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `author_name` varchar(100) NOT NULL,
+  `hotel_id` int(11) DEFAULT NULL COMMENT 'Khách sạn được review',
+  `content` text NOT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
+  `likes_count` int(11) DEFAULT 0,
+  `created_at` timestamp DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`hotel_id`) REFERENCES `hotels`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bảng lưu Bình luận (Comments)
+CREATE TABLE `feed_comments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) NOT NULL,
+  `author_name` varchar(100) NOT NULL,
+  `content` text NOT NULL,
+  `created_at` timestamp DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`post_id`) REFERENCES `feed_posts`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================
 -- 2. THÊM DỮ LIỆU MẪU (SAMPLE DATA)
@@ -84,7 +107,7 @@ INSERT INTO `hotels` (`id`, `name`, `address`, `star_rating`, `vibe`, `descripti
 
 -- Thêm Thư viện ảnh (Mỗi khách sạn 2 ảnh để test hiệu ứng Carousel)
 INSERT INTO `hotel_images` (`hotel_id`, `image_url`, `is_primary`) VALUES
-(1, 'https://via.placeholder.com/600x400?text=Muong+Thanh+1', 1),
+(1, 'https://cdn1.ivivu.com/iVivu/2016/12/18/20/khach-san-muong-thanh-luxury-can-tho-27-800x450.jpg', 1),
 (1, 'https://via.placeholder.com/600x400?text=Muong+Thanh+2', 0),
 (2, 'https://via.placeholder.com/600x400?text=Azerai+1', 1),
 (2, 'https://via.placeholder.com/600x400?text=Azerai+2', 0),
@@ -136,3 +159,4 @@ INSERT INTO `hotel_amenities` (`hotel_id`, `amenity_id`) VALUES
 (8, 4), (8, 5),
 (9, 1), (9, 2), (9, 6),
 (10, 4), (10, 5);
+
