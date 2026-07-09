@@ -45,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($key == 0) {
                     $file_name = "hotel_" . $hotel_id . "_primary." . $ext;
                 } else {
-                // Các ảnh sau đánh số ngẫu nhiên theo thời gian
-                    $file_name = "hotel_" . $hotel_id . "_" . time() . "_" . $key . "." . $ext;
+                // Các ảnh sau đánh số thứ tự (stt) theo key (1, 2, 3...) để khớp cú pháp hotel_id_stt
+                    $file_name = "hotel_" . $hotel_id . "_" . $key . "." . $ext;
                 }
         
                 $target = $upload_dir . $file_name;
