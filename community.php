@@ -45,7 +45,15 @@ if (isset($_POST['submit_comment'])) {
 $hotels = $pdo->query("SELECT id, name FROM hotels")->fetchAll(PDO::FETCH_ASSOC);
 
 // Lấy danh sách bài viết (Giảm dần theo thời gian mới nhất)
-$posts = $pdo->query("SELECT p.*, h.name as hotel_name FROM feed_posts p LEFT JOIN hotels h ON p.hotel_id = h.id ORDER BY p.id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$viewer_id = $_SESSION['user_id'] ?? null;
+
+if ($viewer_id) {
+    $stmt_posts = $pdo->prepare("SELECT p.*, h.name as hotel_name, CASE WHEN pl.user_id IS NULL THEN 0 ELSE 1 END AS is_liked FROM feed_posts p LEFT JOIN hotels h ON p.hotel_id = h.id LEFT JOIN feed_post_likes pl ON pl.post_id = p.id AND pl.user_id = ? ORDER BY p.id DESC");
+    $stmt_posts->execute([$viewer_id]);
+    $posts = $stmt_posts->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $posts = $pdo->query("SELECT p.*, h.name as hotel_name, 0 AS is_liked FROM feed_posts p LEFT JOIN hotels h ON p.hotel_id = h.id ORDER BY p.id DESC")->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 
 <div style="max-width: 600px; margin: 0 auto; padding-top: 20px;">
@@ -103,7 +111,7 @@ $posts = $pdo->query("SELECT p.*, h.name as hotel_name FROM feed_posts p LEFT JO
 
             <!-- Nút Thả tim (Like) -->
             <div style="border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 0; margin-bottom: 15px;">
-                <button class="btn-like" data-id="<?= $post['id'] ?>" style="background: none; border: none; cursor: pointer; color: #666; font-size: 15px; display: flex; align-items: center; gap: 5px;">
+                <button class="btn-like" data-id="<?= $post['id'] ?>" data-liked="<?= (int)$post['is_liked'] ?>" style="background: none; border: none; cursor: pointer; color: <?= !empty($post['is_liked']) ? 'red' : '#666' ?>; font-size: 15px; display: flex; align-items: center; gap: 5px;">
                     ❤️ <span class="like-count"><?= $post['likes_count'] ?></span> Yêu thích
                 </button>
             </div>
@@ -141,6 +149,7 @@ $posts = $pdo->query("SELECT p.*, h.name as hotel_name FROM feed_posts p LEFT JO
 <script>
     document.querySelectorAll('.btn-like').forEach(button => {
         button.addEventListener('click', function() {
+            const isLiked = this.getAttribute('data-liked') === '1';
             const postId = this.getAttribute('data-id');
             const countSpan = this.querySelector('.like-count');
 
@@ -152,10 +161,19 @@ $posts = $pdo->query("SELECT p.*, h.name as hotel_name FROM feed_posts p LEFT JO
                     },
                     body: 'post_id=' + postId
                 })
-                .then(response => response.text())
-                .then(newCount => {
-                    countSpan.textContent = newCount; // Cập nhật số tim mới
-                    this.style.color = 'red'; // Đổi màu chữ báo hiệu đã thích
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = 'login.php';
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || !data.success) return;
+
+                    countSpan.textContent = data.likes_count;
+                    this.style.color = data.liked ? 'red' : '#666';
+                    this.setAttribute('data-liked', data.liked ? '1' : '0');
                 });
         });
     });
