@@ -12,7 +12,23 @@ $user_id = $_SESSION['user_id'];
 // 1. Lịch sử so sánh
 $stmt = $pdo->prepare("SELECT * FROM comparison_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20");
 $stmt->execute([$user_id]);
-$history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$history_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$history = [];
+$seen_history_keys = [];
+foreach ($history_raw as $item) {
+    $ids = array_values(array_unique(array_filter(array_map('trim', explode(',', $item['hotel_ids'])))));
+    sort($ids, SORT_NUMERIC);
+    $history_key = implode(',', $ids);
+
+    if (isset($seen_history_keys[$history_key])) {
+        continue;
+    }
+
+    $seen_history_keys[$history_key] = true;
+    $item['hotel_ids'] = $history_key;
+    $history[] = $item;
+}
 
 $all_ids = [];
 foreach ($history as $h) {
@@ -44,7 +60,7 @@ $my_posts = $stmt_posts->fetchAll(PDO::FETCH_ASSOC);
         <h3 style="margin-bottom:15px;">🔍 Lịch sử so sánh</h3>
         <?php if (count($history) > 0): ?>
             <?php foreach ($history as $h):
-                $ids = explode(',', $h['hotel_ids']);
+                $ids = array_filter(explode(',', $h['hotel_ids']));
                 $names = array_map(fn($id) => $hotel_names[$id] ?? "KS #$id", $ids);
             ?>
                 <div style="background:#fff; padding:15px 20px; border-radius:8px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
@@ -75,7 +91,7 @@ $my_posts = $stmt_posts->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p style="color:#999;">Bạn chưa đăng bài nào. <a href="community.php">Chia sẻ trải nghiệm ngay &raquo;</a></p>
+            <p style="color:#999;">Bạn chưa có bài đăng nào. <a href="community.php">Chia sẻ trải nghiệm ngay &raquo;</a></p>
         <?php endif; ?>
     </section>
 </div>

@@ -33,29 +33,29 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <section class="hotel-list-section" style="margin-top: 30px;">
     <h2>Kết quả gợi ý phù hợp nhất:</h2>
     <p style="margin-bottom: 25px; color: #666; background: #fff; padding: 15px; border-radius: 8px; border-left: 5px solid var(--primary);">
-        Bạn đang tìm: <strong><?= $capacity ?> người</strong> | 
-        Ngân sách tối đa: <strong><?= number_format($budget) ?> đ/đêm</strong> | 
+        Bạn đang tìm: <strong><?= $capacity ?> người</strong> |
+        Ngân sách tối đa: <strong><?= number_format($budget) ?> đ/đêm</strong> |
         Phong cách: <strong><?= htmlspecialchars($vibe) ?></strong>
     </p>
 
     <div class="hotel-grid">
-        <?php if(count($results) > 0): ?>
-            <?php foreach($results as $hotel): ?>
-            <article class="hotel-card">
-                <!-- Hiển thị ảnh bìa, nếu lỗi ảnh thì dùng ảnh placeholder -->
-                <img src="<?= htmlspecialchars($hotel['image_url'] ?: 'https://via.placeholder.com/400x250') ?>" alt="<?= htmlspecialchars($hotel['name']) ?>">
-                
-                <div class="card-content">
-                    <h3><?= htmlspecialchars($hotel['name']) ?></h3>
-                    <p style="color: #666; font-size: 14px; margin-bottom: 10px;">📍 <?= htmlspecialchars($hotel['address']) ?></p>
-                    
-                    <p class="price">Mức giá khớp: <?= number_format($hotel['price']) ?> đ</p>
-                    
-                    <div class="card-actions" style="margin-top: 15px;">
-                        <a href="detail.php?id=<?= $hotel['id'] ?>" class="btn-primary" style="display: block; width: 100%; text-align: center; text-decoration: none;">Xem chi tiết & Đặt phòng</a>
+        <?php if (count($results) > 0): ?>
+            <?php foreach ($results as $hotel): ?>
+                <article class="hotel-card">
+                    <!-- Hiển thị ảnh bìa, nếu lỗi ảnh thì dùng ảnh placeholder -->
+                    <img src="<?= htmlspecialchars($hotel['image_url'] ?: 'https://via.placeholder.com/400x250') ?>" alt="<?= htmlspecialchars($hotel['name']) ?>">
+
+                    <div class="card-content">
+                        <h3><?= htmlspecialchars($hotel['name']) ?></h3>
+                        <p style="color: #666; font-size: 14px; margin-bottom: 10px;">📍 <?= htmlspecialchars($hotel['address']) ?></p>
+
+                        <p class="price">Mức giá khớp: <?= number_format($hotel['price']) ?> đ</p>
+
+                        <div class="card-actions" style="margin-top: 15px;">
+                            <a href="detail.php?id=<?= $hotel['id'] ?>" class="btn-primary" style="display: block; width: 100%; text-align: center; text-decoration: none;">Xem chi tiết & Đặt phòng</a>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
             <?php endforeach; ?>
         <?php else: ?>
             <!-- Trạng thái không tìm thấy kết quả -->

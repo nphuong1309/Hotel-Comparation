@@ -38,17 +38,27 @@ body {
 .nav-content a {
     text-decoration: none;
     color: #FFF4E6;
-    margin-left: 15px;
+    margin-left: 30px;
 }
 
 .nav-content nav {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+    gap: 30px;
 }
 
 .nav-content a:hover {
     color: #FFD6BF;
+}
+
+.nav-content nav > * {
+    margin-left: 0;
+}
+
+.nav-user {
+    margin-left: 24px;
+    white-space: nowrap;
 }
 
 .logo {

@@ -83,6 +83,7 @@ CREATE TABLE `comparison_history` (
   `hotel_ids` varchar(255) NOT NULL,
   `created_at` timestamp DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_comparison_history_user_hotels` (`user_id`, `hotel_ids`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 -- Bảng lưu Bình luận (Comments)

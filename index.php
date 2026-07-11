@@ -34,7 +34,7 @@ $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Tìm Khách Sạn Chân Ái</h2>
         <form action="search.php" method="GET" id="smartSearchForm">
             <div class="form-group">
-                <label>Số người (1-30):</label>
+                <label>Số người (1-4):</label>
                 <input type="number" name="capacity" min="1" max="30" value="2">
             </div>
             <div class="form-group range-group">
@@ -60,38 +60,38 @@ $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <section class="hotel-list-section">
     <h2>Tất cả khách sạn</h2>
     <div class="hotel-grid">
-        <?php foreach($hotels as $hotel): 
-    $hotel_id = $hotel['id'];
+        <?php foreach ($hotels as $hotel):
+            $hotel_id = $hotel['id'];
 
-    // Ảnh bìa chính: hotel_1_primary.jpg, hotel_2_primary.jpg,...
-    $primary_images = glob("uploads/hotel_{$hotel_id}_primary.{jpg,jpeg,png,webp}", GLOB_BRACE);
+            // Ảnh bìa chính: hotel_1_primary.jpg, hotel_2_primary.jpg,...
+            $primary_images = glob("uploads/hotel_{$hotel_id}_primary.{jpg,jpeg,png,webp}", GLOB_BRACE);
 
-    $first_img = !empty($primary_images) 
-        ? $primary_images[0] 
-        : 'https://via.placeholder.com/400x250';
+            $first_img = !empty($primary_images)
+                ? $primary_images[0]
+                : 'https://via.placeholder.com/400x250';
 
-    // Ảnh dùng cho hiệu ứng tự nhảy: hotel_1_1.jpg, hotel_1_2.jpg,...
-    $slide_images = glob("uploads/hotel_{$hotel_id}_*.{jpg,jpeg,png,webp}", GLOB_BRACE);
+            // Ảnh dùng cho hiệu ứng tự nhảy: hotel_1_1.jpg, hotel_1_2.jpg,...
+            $slide_images = glob("uploads/hotel_{$hotel_id}_*.{jpg,jpeg,png,webp}", GLOB_BRACE);
 
-    // Lọc lại, chỉ lấy file có dạng hotel_ID_SỐ.jpg
-    // Không lấy hotel_ID_primary.jpg
-    $slide_images = array_filter($slide_images, function($img) use ($hotel_id) {
-        return preg_match("/hotel_{$hotel_id}_[0-9]+\.(jpg|jpeg|png|webp)$/i", basename($img));
-    });
+            // Lọc lại, chỉ lấy file có dạng hotel_ID_SỐ.jpg
+            // Không lấy hotel_ID_primary.jpg
+            $slide_images = array_filter($slide_images, function ($img) use ($hotel_id) {
+                return preg_match("/hotel_{$hotel_id}_[0-9]+\.(jpg|jpeg|png|webp)$/i", basename($img));
+            });
 
-    // Sắp xếp đúng thứ tự 1, 2, 3, 10...
-    natsort($slide_images);
-    $slide_images = array_values($slide_images);
+            // Sắp xếp đúng thứ tự 1, 2, 3, 10...
+            natsort($slide_images);
+            $slide_images = array_values($slide_images);
 
-    // Gộp ảnh primary (nếu có) và ảnh thường để làm danh sách nhảy ảnh cho JS carousel
-    $all_carousel_images = array_merge($primary_images, $slide_images);
-    if (empty($all_carousel_images)) {
-        $all_carousel_images[] = 'https://via.placeholder.com/400x250';
-    }
+            // Gộp ảnh primary (nếu có) và ảnh thường để làm danh sách nhảy ảnh cho JS carousel
+            $all_carousel_images = array_merge($primary_images, $slide_images);
+            if (empty($all_carousel_images)) {
+                $all_carousel_images[] = 'https://via.placeholder.com/400x250';
+            }
 
-    // Chuỗi ảnh để JS chạy carousel
-    $images_string = implode(',', $all_carousel_images);
-?>
+            // Chuỗi ảnh để JS chạy carousel
+            $images_string = implode(',', $all_carousel_images);
+        ?>
             <article class="hotel-card">
                 <!-- Ảnh bìa có data-images để JS tạo hiệu ứng tự nhảy ảnh -->
                 <img src="<?= htmlspecialchars($first_img) ?>" class="auto-slide-img" data-images="<?= htmlspecialchars($images_string) ?>" alt="Hotel">
@@ -134,20 +134,20 @@ $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const budgetRange = document.getElementById("budgetRange");
-    const budgetValue = document.getElementById("budgetValue");
+    document.addEventListener("DOMContentLoaded", function() {
+        const budgetRange = document.getElementById("budgetRange");
+        const budgetValue = document.getElementById("budgetValue");
 
-    if (!budgetRange) return;
+        if (!budgetRange) return;
 
-    function updateBudgetRange() {
-        const min = Number(budgetRange.min);
-        const max = Number(budgetRange.max);
-        const value = Number(budgetRange.value);
+        function updateBudgetRange() {
+            const min = Number(budgetRange.min);
+            const max = Number(budgetRange.max);
+            const value = Number(budgetRange.value);
 
-        const percent = ((value - min) / (max - min)) * 100;
+            const percent = ((value - min) / (max - min)) * 100;
 
-        budgetRange.style.background = `
+            budgetRange.style.background = `
             linear-gradient(
                 to right,
                 #FFD6BF 0%,
@@ -157,14 +157,13 @@ document.addEventListener("DOMContentLoaded", function () {
             )
         `;
 
-        if (budgetValue) {
-            budgetValue.textContent = value.toLocaleString("vi-VN");
+            if (budgetValue) {
+                budgetValue.textContent = value.toLocaleString("vi-VN");
+            }
         }
-    }
 
-    budgetRange.addEventListener("input", updateBudgetRange);
-    updateBudgetRange();
-});
+        budgetRange.addEventListener("input", updateBudgetRange);
+        updateBudgetRange();
+    });
 </script>
 <?php require_once 'includes/footer.php'; ?>
-

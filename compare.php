@@ -12,10 +12,21 @@ if (!is_array($ids)) {
 }
 
 // Giới hạn hiển thị 5 khách sạn để tránh vỡ giao diện
-$ids = array_slice(array_values($ids), 0, 5);
+$ids = array_values(array_unique(array_filter($ids)));
+$ids = array_slice($ids, 0, 5);
+
+$normalized_ids = $ids;
+sort($normalized_ids, SORT_NUMERIC);
+$history_key = implode(',', $normalized_ids);
+
 if (isset($_SESSION['user_id'])) {
-    $stmt_log = $pdo->prepare("INSERT INTO comparison_history (user_id, hotel_ids) VALUES (?, ?)");
-    $stmt_log->execute([$_SESSION['user_id'], implode(',', $ids)]);
+    $stmt_check = $pdo->prepare("SELECT 1 FROM comparison_history WHERE user_id = ? AND hotel_ids = ? LIMIT 1");
+    $stmt_check->execute([$_SESSION['user_id'], $history_key]);
+
+    if (!$stmt_check->fetchColumn()) {
+        $stmt_log = $pdo->prepare("INSERT INTO comparison_history (user_id, hotel_ids) VALUES (?, ?)");
+        $stmt_log->execute([$_SESSION['user_id'], $history_key]);
+    }
 }
 $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
