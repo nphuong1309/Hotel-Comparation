@@ -51,7 +51,7 @@ $hotels = $stmt->fetchAll();
             <td><?= htmlspecialchars($h['vibe']) ?></td>
             <td>
                 <!-- Nút sửa (có thể phát triển sau) và nút Xóa -->
-                <a href="#" class="btn-outline">Sửa</a>
+                <a href="edit_hotel.php?id=<?= $h['id'] ?>" class="btn-outline">Sửa</a>
                 <a href="?delete=<?= $h['id'] ?>" class="btn-outline" style="color:red; border-color:red;" onclick="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">Xóa</a>
             </td>
         </tr>
