@@ -20,12 +20,12 @@
 
                 <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'admin'): ?>
                     <!-- Đã đăng nhập với quyền ADMIN -->
-                    <span class="nav-user"><b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
+                    &nbsp;<span class="nav-user"><b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
                     <a href="logout.php" class="btn-outline">Đăng xuất</a>
 
                 <?php elseif (isset($_SESSION['user_id'])): ?>
                     <!-- Đã đăng nhập với quyền CUSTOMER -->
-                    <span class="nav-user"><b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
+                    &nbsp;<span class="nav-user"><b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
                     <a href="profile.php">Tài khoản của tôi</a>
                     <a href="logout.php" class="btn-outline">Đăng xuất</a>
 
