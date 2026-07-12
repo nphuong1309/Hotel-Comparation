@@ -64,15 +64,7 @@ $sql = "SELECT
             h.name,
             h.address,
             h.vibe,
-            MIN(r.price) AS price,
-            (
-                SELECT hi.image_url
-                FROM hotel_images hi
-                WHERE hi.hotel_id = h.id
-                  AND hi.is_primary = 1
-                ORDER BY hi.id ASC
-                LIMIT 1
-            ) AS image_url
+            MIN(r.price) AS price
         FROM hotels h
         INNER JOIN rooms r ON r.hotel_id = h.id
         WHERE r.capacity >= :capacity
@@ -131,6 +123,55 @@ foreach ($params as $placeholder => $value) {
 $stmt->execute();
 
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+/**
+ * Lấy một ảnh đại diện của khách sạn từ thư mục uploads.
+ *
+ * Ưu tiên:
+ * 1. hotel_ID_primary.*
+ * 2. Ảnh đánh số đầu tiên hotel_ID_1.*, hotel_ID_2.*...
+ * 3. Ảnh placeholder nếu khách sạn chưa có ảnh.
+ */
+function getRepresentativeHotelImage(int $hotelId): string
+{
+    $primaryImages = glob(
+        "uploads/hotel_{$hotelId}_primary.{jpg,jpeg,png,webp}",
+        GLOB_BRACE
+    ) ?: [];
+
+    if ($primaryImages) {
+        return $primaryImages[0];
+    }
+
+    $numberedImages = glob(
+        "uploads/hotel_{$hotelId}_*.{jpg,jpeg,png,webp}",
+        GLOB_BRACE
+    ) ?: [];
+
+    $numberedImages = array_filter(
+        $numberedImages,
+        static function (string $image) use ($hotelId): bool {
+            return (bool) preg_match(
+                "/hotel_{$hotelId}_[0-9]+\.(jpg|jpeg|png|webp)$/i",
+                basename($image)
+            );
+        }
+    );
+
+    natsort($numberedImages);
+    $numberedImages = array_values($numberedImages);
+
+    return $numberedImages[0]
+        ?? 'https://via.placeholder.com/400x250?text=No+Image';
+}
+
+// Gán một ảnh đại diện cho từng kết quả tìm kiếm.
+foreach ($results as &$hotelResult) {
+    $hotelResult['image_url'] = getRepresentativeHotelImage(
+        (int) $hotelResult['id']
+    );
+}
+unset($hotelResult);
 
 /**
  * Trả về SVG nét đơn sắc theo mã icon lưu trong database.
@@ -408,12 +449,7 @@ require_once 'includes/header.php';
                 <article class="hotel-card">
 
                     <img
-                        src="<?=
-                            htmlspecialchars(
-                                $hotel['image_url']
-                                ?: 'https://via.placeholder.com/400x250'
-                            )
-                        ?>"
+                        src="<?= htmlspecialchars($hotel['image_url']) ?>"
                         alt="<?= htmlspecialchars($hotel['name']) ?>"
                     >
 
@@ -442,7 +478,7 @@ require_once 'includes/header.php';
                                 ?>"
                                 class="btn-primary search-detail-link"
                             >
-                                Xem chi tiết &amp; Đặt phòng
+                                Xem chi tiết
                             </a>
 
                         </div>
