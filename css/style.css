@@ -52,7 +52,7 @@ body {
     color: #FFD6BF;
 }
 
-.nav-content nav > * {
+.nav-content nav>* {
     margin-left: 0;
 }
 
@@ -372,4 +372,221 @@ body {
 .nav-content nav b,
 .nav-content nav strong {
     color: #FFFFFF !important;
+}
+
+/* =========================================================
+   Bộ lọc nhiều tiện nghi trên thanh tìm kiếm
+   ========================================================= */
+.amenity-filter {
+    position: relative;
+    min-width: 280px;
+}
+
+.amenity-select-trigger {
+    width: 100%;
+    min-height: 38px;
+    padding: 10px 12px;
+    border: 1px solid #E5B8A8;
+    border-radius: 5px;
+    background: #FFFFFF;
+    color: var(--text-color);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+}
+
+.amenity-select-trigger:hover,
+.amenity-select-trigger:focus,
+.amenity-select-trigger[aria-expanded="true"] {
+    border-color: #df6040;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(223, 96, 64, 0.12);
+}
+
+#amenitySelectText {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.amenity-select-arrow {
+    flex: 0 0 auto;
+    font-size: 20px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.amenity-select-trigger[aria-expanded="true"] .amenity-select-arrow {
+    transform: rotate(180deg);
+}
+
+.amenity-menu {
+    position: absolute;
+    z-index: 1200;
+    top: calc(100% + 7px);
+    left: 0;
+    width: min(390px, 90vw);
+    max-height: 330px;
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid #E5B8A8;
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(19, 3, 88, 0.16);
+}
+
+.amenity-menu[hidden] {
+    display: none;
+}
+
+.amenity-menu-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #FFFDF8;
+    border-bottom: 1px solid #F2D6C7;
+}
+
+.amenity-clear-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #b54429;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.amenity-clear-button:hover {
+    text-decoration: underline;
+}
+
+.amenity-options {
+    max-height: 275px;
+    overflow-y: auto;
+    padding: 7px;
+}
+
+.amenity-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1.35;
+}
+
+.amenity-option:hover {
+    background: #FFF4E6;
+}
+
+.amenity-option input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin: 1px 0 0;
+    flex: 0 0 17px;
+    accent-color: #df6040;
+    cursor: pointer;
+}
+
+.amenity-empty-option {
+    margin: 8px;
+    color: #777;
+}
+
+.search-submit-button {
+    min-height: 38px;
+}
+
+/* Trang kết quả tìm kiếm */
+.search-results-section {
+    margin-top: 30px;
+}
+
+.search-criteria-summary {
+    margin-bottom: 25px;
+    padding: 15px;
+    border-left: 5px solid var(--primary);
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #666;
+    line-height: 1.7;
+}
+
+.criteria-separator {
+    margin: 0 7px;
+    color: #B5A9B2;
+}
+
+.hotel-address {
+    margin-bottom: 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.search-result-actions {
+    margin-top: 15px;
+}
+
+.search-detail-link {
+    display: block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+}
+
+.empty-search-result {
+    grid-column: 1 / -1;
+    padding: 50px 20px;
+    border-radius: 8px;
+    background: #FFFFFF;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.empty-search-result p {
+    margin: 0 0 18px;
+    color: #b23a24;
+    font-size: 18px;
+}
+
+.empty-search-link {
+    display: inline-block;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+
+    .form-group,
+    .amenity-filter,
+    .search-submit-button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .amenity-menu {
+        width: 100%;
+    }
+
+    .criteria-separator {
+        display: none;
+    }
+
+    .search-criteria-summary>span,
+    .search-criteria-summary>strong {
+        display: block;
+    }
+}
+
+.amenity-option input[type="checkbox"] {
+    padding: 0;
+    border-radius: 3px;
 }
