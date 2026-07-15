@@ -1,32 +1,50 @@
+/* =========================================================
+   DESIGN TOKENS – biến màu và font dùng chung toàn site.
+   Ghi chú: header.php cũng khai báo :root để thêm --site-*
+   và --font-*. Hai bộ biến bổ sung nhau, không xung đột.
+   --primary ở đây đồng bộ với --site-primary trong header.php
+   (đều là #dda975 – vàng cát).
+   ========================================================= */
 :root {
-    --primary: #4A2545;
-    --bg-color: #FFF4E6;
-    --text-color: #2F2F2F;
+    --primary: #dda975;         /* vàng cát – khớp với header.php */
+    --primary-dark: #c58b56;    /* vàng cát đậm */
+    --bg-color: #fef4e8;        /* nền kem – khớp với header.php */
+    --text-color: #191919;      /* chữ đen – khớp với header.php */
 }
 
-* {
+/* =========================================================
+   RESET / BASE
+   ========================================================= */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
-    font-family: sans-serif;
 }
 
+/* body baseline được header.php kiểm soát hoàn toàn (sticky
+   navbar, flex-column layout, padding-bottom cho compare-dock).
+   Ở đây chỉ giữ margin: 0 để tránh double-margin với html. */
 body {
-    background: var(--bg-color);
-    color: var(--text-color);
     margin: 0;
-    padding-bottom: 100px;
 }
 
+/* =========================================================
+   LAYOUT UTILITY
+   ========================================================= */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 15px;
 }
 
-/* Navbar */
+/* =========================================================
+   NAVBAR  (style chi tiết nằm trong header.php <style>)
+   Chỉ giữ phần gốc tối thiểu; header.php ghi đè qua !important.
+   ========================================================= */
 .navbar {
-    background: #130358;
+    background: #191919;
     padding: 15px 0;
-    box-shadow: 0 2px 5px rgba(74, 37, 69, 0.25);
+    box-shadow: 0 2px 5px rgba(221, 169, 117, 0.25);
 }
 
 .nav-content {
@@ -37,7 +55,7 @@ body {
 
 .nav-content a {
     text-decoration: none;
-    color: #FFF4E6;
+    color: #fff;
     margin-left: 30px;
 }
 
@@ -49,10 +67,11 @@ body {
 }
 
 .nav-content a:hover {
-    color: #FFD6BF;
+    color: var(--primary);
 }
 
-.nav-content nav>* {
+/* Loại bỏ margin-left thừa khi dùng gap */
+.nav-content nav > * {
     margin-left: 0;
 }
 
@@ -63,37 +82,62 @@ body {
 
 .logo {
     margin: 0;
-    color: #FFF4E6;
+    color: #fff;
 }
 
 .logo span {
-    color: #FFB38A;
+    color: var(--primary);
 }
 
-.btn-login {
-    background: #df6040;
+/* Màu trắng cho tất cả text trong nav (header.php cũng có rule này) */
+.nav-content nav a,
+.nav-content nav span,
+.nav-content nav b,
+.nav-content nav strong {
     color: #fff !important;
-    padding: 8px 15px;
-    border-radius: 5px;
 }
 
-.btn-login:hover,
+/* =========================================================
+   BUTTONS  (style chi tiết + override nằm trong header.php)
+   Định nghĩa nền để các trang không dùng header.php vẫn có
+   styling cơ bản. Màu đồng bộ với identity vàng cát.
+   ========================================================= */
+.btn-primary {
+    background: var(--primary);
+    color: #191919;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 .btn-primary:hover {
     filter: brightness(0.95);
 }
 
-.btn-outline:hover {
-    background: rgba(5, 128, 118, 0.08);
-}
-
+.btn-login,
 .btn-register {
-    background: #df6040;
-    color: #f7f6fc !important;
+    background: var(--primary);
+    color: #191919 !important;
     padding: 8px 15px;
     border-radius: 5px;
 }
 
-/* Form Gợi Ý */
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary-dark);
+    color: var(--primary-dark);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.btn-outline:hover {
+    background: rgba(197, 139, 86, 0.12);
+}
+
+/* =========================================================
+   FORM TÌM KIẾM GỢI Ý  (dùng chung index.php + search.php)
+   ========================================================= */
 .smart-search-section {
     background: #FFFDF8;
     padding: 20px;
@@ -137,29 +181,13 @@ body {
 }
 
 .range-group label span {
-    color: #df6040;
+    color: var(--primary-dark);
     font-weight: 700;
 }
 
-/* Nút bấm */
-.btn-primary {
-    background: #df6040;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-outline {
-    background: transparent;
-    border: 1px solid #035b54;
-    color: #058076;
-    padding: 5px 10px;
-    cursor: pointer;
-}
-
-/* Hotel Grid (Sử dụng CSS Grid) */
+/* =========================================================
+   HOTEL GRID  (trang chủ cũ + search.php)
+   ========================================================= */
 .hotel-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -178,7 +206,7 @@ body {
 }
 
 .price {
-    color: #df6040;
+    color: var(--primary-dark);
     font-weight: 700;
 }
 
@@ -191,7 +219,7 @@ body {
 }
 
 .compare-checkbox input {
-    accent-color: #df6040;
+    accent-color: var(--primary-dark);
 }
 
 .hotel-card img {
@@ -223,22 +251,29 @@ body {
     box-shadow: 0 2px 5px rgba(74, 37, 69, 0.08);
 }
 
-/* Compare Dock */
+/* =========================================================
+   COMPARE DOCK  (thanh so sánh cố định dưới cùng)
+   Style gốc tại đây – index.php ghi đè màu và border qua
+   #compareDock.compare-dock (specificity cao hơn).
+   Cách ẩn dùng display:none để đồng bộ với JS và index.php.
+   ========================================================= */
 .compare-dock {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background: #130358;
-    color: #FFF4E6;
+    background: #191919;
+    color: #fff;
     padding: 15px;
-    box-shadow: 0 -2px 10px rgba(74, 37, 69, 0.35);
-    transition: transform 0.3s;
+    box-shadow: 0 -2px 10px rgba(34, 24, 17, 0.35);
+    transition: none;
     z-index: 1000;
 }
 
+/* Dùng display:none thay vì transform để đồng bộ với JS:
+   renderCompareDock() dùng classList.toggle('hidden', ...) */
 .compare-dock.hidden {
-    transform: translateY(100%);
+    display: none;
 }
 
 .dock-content {
@@ -256,15 +291,33 @@ body {
 .btn-text {
     background: none;
     border: none;
-    color: #FFFDF8;
+    color: #fff;
     cursor: pointer;
 }
 
-/* Table Compare */
+/* =========================================================
+   TABLE SO SÁNH  (compare.php)
+   ========================================================= */
 .table-responsive {
     overflow-x: auto;
 }
 
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #FFFDF8;
+}
+
+.compare-table th,
+.compare-table td {
+    border: 1px solid #E5B8A8;
+    padding: 10px;
+    text-align: center;
+}
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
 .pagination {
     display: flex;
     gap: 10px;
@@ -284,38 +337,17 @@ body {
 
 .page-link.active,
 .page-link:hover {
-    background: #df6040;
-    border-color: #df6040;
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
     color: #fff;
 }
 
-.compare-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #FFFDF8;
-}
-
-.compare-table th,
-.compare-table td {
-    border: 1px solid #E5B8A8;
-    padding: 10px;
-    text-align: center;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    #smartSearchForm {
-        flex-direction: column;
-    }
-
-    .hotel-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* Thẻ xếp thành 1 cột nằm dọc */
-}
-
-/* Thanh kéo ngân sách */
+/* =========================================================
+   THANH NGÂN SÁCH (#budgetRange)
+   Style đơn giản cho trang khác nếu cần. Trang chủ (index.php)
+   override toàn bộ bằng <style> block riêng với appearance:none
+   nên block này chỉ là fallback cho các context khác.
+   ========================================================= */
 #budgetRange {
     width: 100%;
     height: 6px;
@@ -323,59 +355,11 @@ body {
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    background: #FFFFFF;
-}
-
-/* Chrome, Edge */
-#budgetRange::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: 10px;
-    background: transparent;
-}
-
-#budgetRange::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-    margin-top: -5px;
-    border-radius: 50%;
-    background: #db4c28;
-    border: 2px solid #FFF4E6;
-    cursor: pointer;
-    -webkit-appearance: none;
-}
-
-/* Firefox */
-#budgetRange::-moz-range-track {
-    height: 6px;
-    border-radius: 10px;
-    background: transparent;
-}
-
-#budgetRange::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #d44a27;
-    border: 2px solid #FFF4E6;
-    cursor: pointer;
-}
-
-/* Viền thanh ngân sách */
-#budgetRange {
     box-shadow: 0 0 0 1px #fec5b0;
 }
 
-.nav-content nav a,
-.nav-content nav span,
-.nav-content nav b,
-.nav-content nav strong {
-    color: #FFFFFF !important;
-}
-
 /* =========================================================
-   Bộ lọc nhiều tiện nghi trên thanh tìm kiếm
+   BỘ LỌC TIỆN NGHI  (dùng chung index.php + search.php)
    ========================================================= */
 .amenity-filter {
     position: relative;
@@ -388,7 +372,7 @@ body {
     padding: 10px 12px;
     border: 1px solid #E5B8A8;
     border-radius: 5px;
-    background: #FFFFFF;
+    background: #fff;
     color: var(--text-color);
     font-size: 16px;
     cursor: pointer;
@@ -402,9 +386,9 @@ body {
 .amenity-select-trigger:hover,
 .amenity-select-trigger:focus,
 .amenity-select-trigger[aria-expanded="true"] {
-    border-color: #df6040;
+    border-color: var(--primary-dark);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(223, 96, 64, 0.12);
+    box-shadow: 0 0 0 2px rgba(197, 139, 86, 0.15);
 }
 
 #amenitySelectText {
@@ -432,10 +416,10 @@ body {
     width: min(390px, 90vw);
     max-height: 330px;
     overflow: hidden;
-    background: #FFFFFF;
+    background: #fff;
     border: 1px solid #E5B8A8;
     border-radius: 8px;
-    box-shadow: 0 10px 28px rgba(19, 3, 88, 0.16);
+    box-shadow: 0 10px 28px rgba(25, 25, 25, 0.14);
 }
 
 .amenity-menu[hidden] {
@@ -459,7 +443,7 @@ body {
     padding: 0;
     border: 0;
     background: transparent;
-    color: #b54429;
+    color: var(--primary-dark);
     font-size: 14px;
     cursor: pointer;
 }
@@ -492,8 +476,10 @@ body {
     width: 17px;
     height: 17px;
     margin: 1px 0 0;
+    padding: 0;
     flex: 0 0 17px;
-    accent-color: #df6040;
+    border-radius: 3px;
+    accent-color: var(--primary-dark);
     cursor: pointer;
 }
 
@@ -506,7 +492,9 @@ body {
     min-height: 38px;
 }
 
-/* Trang kết quả tìm kiếm */
+/* =========================================================
+   TRANG KẾT QUẢ TÌM KIẾM  (search.php)
+   ========================================================= */
 .search-results-section {
     margin-top: 30px;
 }
@@ -516,7 +504,7 @@ body {
     padding: 15px;
     border-left: 5px solid var(--primary);
     border-radius: 8px;
-    background: #FFFFFF;
+    background: #fff;
     color: #666;
     line-height: 1.7;
 }
@@ -547,14 +535,14 @@ body {
     grid-column: 1 / -1;
     padding: 50px 20px;
     border-radius: 8px;
-    background: #FFFFFF;
+    background: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
 .empty-search-result p {
     margin: 0 0 18px;
-    color: #b23a24;
+    color: var(--primary-dark);
     font-size: 18px;
 }
 
@@ -563,7 +551,17 @@ body {
     text-decoration: none;
 }
 
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 @media (max-width: 768px) {
+    #smartSearchForm {
+        flex-direction: column;
+    }
+
+    .hotel-grid {
+        grid-template-columns: 1fr;
+    }
 
     .form-group,
     .amenity-filter,
@@ -580,13 +578,8 @@ body {
         display: none;
     }
 
-    .search-criteria-summary>span,
-    .search-criteria-summary>strong {
+    .search-criteria-summary > span,
+    .search-criteria-summary > strong {
         display: block;
     }
-}
-
-.amenity-option input[type="checkbox"] {
-    padding: 0;
-    border-radius: 3px;
 }
