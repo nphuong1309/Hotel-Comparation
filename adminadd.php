@@ -1,6 +1,9 @@
 <?php
 session_start();
-// if(!isset($_SESSION['admin'])) { header("Location: login.php"); exit; }
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit;
+}
 require_once 'includes/db-connect.php';
 require_once 'includes/header.php';
 
@@ -33,25 +36,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // ... (code INSERT bảng hotels và rooms giữ nguyên) ...
 
-            // Xử lý File Upload (Không dùng Database nữa)
+            // Xử lý File Upload và lưu vào hotel_images
             if (!empty($_FILES['images']['name'][0])) {
                 $upload_dir = 'uploads/';
-    
+                $is_first = true;
+
                 foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
-                // Lấy đuôi file (jpg, png...)
-                $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
-        
-                // Ảnh đầu tiên (key == 0) sẽ làm ảnh bìa
-                if ($key == 0) {
-                    $file_name = "hotel_" . $hotel_id . "_primary." . $ext;
-                } else {
-                // Các ảnh sau đánh số thứ tự (stt) theo key (1, 2, 3...) để khớp cú pháp hotel_id_stt
-                    $file_name = "hotel_" . $hotel_id . "_" . $key . "." . $ext;
+                    // Lấy đuôi file (jpg, png...)
+                    $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
+
+                    // Ảnh đầu tiên (key == 0) sẽ làm ảnh bìa
+                    if ($key == 0) {
+                        $file_name = "hotel_" . $hotel_id . "_primary." . $ext;
+                    } else {
+                        $file_name = "hotel_" . $hotel_id . "_" . $key . "." . $ext;
+                    }
+
+                    $target = $upload_dir . $file_name;
+                    if (move_uploaded_file($tmp_name, $target)) {
+                        // Lưu vào bảng hotel_images
+                        $is_primary = ($key == 0) ? 1 : 0;
+                        $stmt_img = $pdo->prepare("INSERT INTO hotel_images (hotel_id, image_url, is_primary) VALUES (?, ?, ?)");
+                        $stmt_img->execute([$hotel_id, $target, $is_primary]);
+                    }
                 }
-        
-                $target = $upload_dir . $file_name;
-                move_uploaded_file($tmp_name, $target);
-            }
             }
 
             $pdo->commit();

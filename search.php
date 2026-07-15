@@ -11,7 +11,7 @@ $capacity = ($capacity !== false && $capacity !== null)
 
 $budget = ($budget !== false && $budget !== null)
     ? max(50000, $budget)
-    : 3000000;
+    : 5000000;
 
 // Lấy danh sách tiện nghi cùng mã icon trực tiếp từ database.
 $amenityRows = $pdo->query(

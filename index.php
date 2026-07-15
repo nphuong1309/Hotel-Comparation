@@ -67,7 +67,7 @@ require_once 'includes/header.php';
                     id="budgetRange"
                     name="budget"
                     min="50000"
-                    max="3000000"
+                    max="5000000"
                     step="50000"
                     value="500000"
                 >

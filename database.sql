@@ -136,6 +136,18 @@ INSERT INTO `feed_post_likes` (`post_id`, `user_id`, `created_at`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `feed_post_images`
+--
+
+CREATE TABLE `feed_post_images` (
+  `id` int(11) NOT NULL,
+  `post_id` int(11) NOT NULL,
+  `image_url` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `hotels`
 --
 
@@ -441,6 +453,13 @@ ALTER TABLE `feed_post_likes`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Chỉ mục cho bảng `feed_post_images`
+--
+ALTER TABLE `feed_post_images`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `post_id` (`post_id`);
+
+--
 -- Chỉ mục cho bảng `hotels`
 --
 ALTER TABLE `hotels`
@@ -503,6 +522,12 @@ ALTER TABLE `feed_posts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT cho bảng `feed_post_images`
+--
+ALTER TABLE `feed_post_images`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT cho bảng `hotels`
 --
 ALTER TABLE `hotels`
@@ -555,6 +580,12 @@ ALTER TABLE `feed_posts`
 ALTER TABLE `feed_post_likes`
   ADD CONSTRAINT `feed_post_likes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `feed_posts` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `feed_post_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `feed_post_images`
+--
+ALTER TABLE `feed_post_images`
+  ADD CONSTRAINT `feed_post_images_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `feed_posts` (`id`) ON DELETE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `hotel_amenities`

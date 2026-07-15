@@ -50,6 +50,18 @@ if (!empty($all_ids)) {
 $stmt_posts = $pdo->prepare("SELECT * FROM feed_posts WHERE author_id = ? OR (author_id IS NULL AND author_name = ?) ORDER BY id DESC");
 $stmt_posts->execute([$user_id, $_SESSION['username']]);
 $my_posts = $stmt_posts->fetchAll(PDO::FETCH_ASSOC);
+
+// Lấy ảnh của các bài đăng
+$my_post_ids = array_column($my_posts, 'id');
+$my_post_images = [];
+if (!empty($my_post_ids)) {
+    $ph = implode(',', array_fill(0, count($my_post_ids), '?'));
+    $stmt_pi = $pdo->prepare("SELECT * FROM feed_post_images WHERE post_id IN ($ph) ORDER BY id ASC");
+    $stmt_pi->execute($my_post_ids);
+    foreach ($stmt_pi->fetchAll(PDO::FETCH_ASSOC) as $pi) {
+        $my_post_images[$pi['post_id']][] = $pi['image_url'];
+    }
+}
 ?>
 
 <div style="max-width: 700px; margin: 30px auto;">
@@ -82,7 +94,22 @@ $my_posts = $stmt_posts->fetchAll(PDO::FETCH_ASSOC);
         <h3 style="margin-bottom:15px;">📝 Bài đăng của tôi trong Cộng đồng</h3>
         <?php if (count($my_posts) > 0): ?>
             <?php foreach ($my_posts as $post): ?>
+                <?php $post_imgs = $my_post_images[$post['id']] ?? []; ?>
                 <div style="background:#fff; padding:15px 20px; border-radius:8px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                    <?php if (!empty($post_imgs)): ?>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                            <?php foreach (array_slice($post_imgs, 0, 4) as $idx => $pimg): ?>
+                                <?php if ($idx === 3 && count($post_imgs) > 4): ?>
+                                    <div style="position:relative; width:72px; height:72px; border-radius:6px; overflow:hidden;">
+                                        <img src="<?= htmlspecialchars($pimg) ?>" style="width:100%; height:100%; object-fit:cover;">
+                                        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; font-weight:bold;">+<?= count($post_imgs) - 3 ?></div>
+                                    </div>
+                                <?php else: ?>
+                                    <img src="<?= htmlspecialchars($pimg) ?>" style="width:72px; height:72px; object-fit:cover; border-radius:6px;">
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                     <p style="margin-bottom:8px;"><?= nl2br(htmlspecialchars($post['content'])) ?></p>
                     <div style="font-size:12px; color:#999; display:flex; justify-content:space-between;">
                         <span><?= date('d/m/Y H:i', strtotime($post['created_at'])) ?></span>
