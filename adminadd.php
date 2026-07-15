@@ -2,9 +2,9 @@
 session_start();
 // if(!isset($_SESSION['admin'])) { header("Location: login.php"); exit; }
 require_once 'includes/db-connect.php';
-require_once 'includes/header.php';
 
 $msg = '';
+$msgType = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = trim($_POST['name']);
@@ -36,36 +36,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Xử lý File Upload (Không dùng Database nữa)
             if (!empty($_FILES['images']['name'][0])) {
                 $upload_dir = 'uploads/';
-    
+
                 foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
-                // Lấy đuôi file (jpg, png...)
-                $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
-        
-                // Ảnh đầu tiên (key == 0) sẽ làm ảnh bìa
-                if ($key == 0) {
-                    $file_name = "hotel_" . $hotel_id . "_primary." . $ext;
-                } else {
-                // Các ảnh sau đánh số thứ tự (stt) theo key (1, 2, 3...) để khớp cú pháp hotel_id_stt
-                    $file_name = "hotel_" . $hotel_id . "_" . $key . "." . $ext;
+                    // Lấy đuôi file (jpg, png...)
+                    $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
+
+                    // Ảnh đầu tiên (key == 0) sẽ làm ảnh bìa
+                    if ($key == 0) {
+                        $file_name = "hotel_" . $hotel_id . "_primary." . $ext;
+                    } else {
+                        // Các ảnh sau đánh số thứ tự (stt) theo key (1, 2, 3...) để khớp cú pháp hotel_id_stt
+                        $file_name = "hotel_" . $hotel_id . "_" . $key . "." . $ext;
+                    }
+
+                    $target = $upload_dir . $file_name;
+                    move_uploaded_file($tmp_name, $target);
                 }
-        
-                $target = $upload_dir . $file_name;
-                move_uploaded_file($tmp_name, $target);
-            }
             }
 
             $pdo->commit();
-            $msg = "Thêm thành công!";
+            $_SESSION['flash_success'] = "Thêm khách sạn thành công!";
+            header("Location: admin.php");
+            exit;
         } catch (Exception $e) {
             $pdo->rollBack();
             $msg = "Lỗi: " . $e->getMessage();
+            $msgType = 'error';
         }
     }
 }
+
+if (isset($_SESSION['flash_success'])) {
+    $msg = $_SESSION['flash_success'];
+    $msgType = 'success';
+    unset($_SESSION['flash_success']);
+}
+
+require_once 'includes/header.php';
 ?>
 
 <h2>Thêm Khách Sạn Mới</h2>
-<p><?= $msg ?></p>
+<?php if ($msg): ?>
+    <div style="margin: 15px 0; padding: 12px 15px; border-radius: 6px; <?= $msgType === 'success' ? 'background:#e8f7ee; color:#1f6b3b; border:1px solid #b7e2c7;' : 'background:#fdecec; color:#a11f1f; border:1px solid #f2bbbb;' ?>">
+        <?= htmlspecialchars($msg) ?>
+    </div>
+    <?php if ($msgType === 'success'): ?>
+        <div style="margin-bottom: 18px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="admin.php" class="btn-primary" style="text-decoration:none; display:inline-block;">Về trang quản trị</a>
+            <a href="index.php" class="btn-outline" style="text-decoration:none; display:inline-block;">Về trang chủ</a>
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
 <form action="" method="POST" enctype="multipart/form-data" onsubmit="return validateAdminForm()">
     <div class="form-group">
         <label>Tên khách sạn:</label>

@@ -7,6 +7,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 require_once 'includes/db-connect.php';
 require_once 'includes/header.php';
 
+if (isset($_SESSION['flash_success'])) {
+    $flashSuccess = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
+
 // Xử lý Xóa khách sạn
 if (isset($_GET['delete'])) {
     $del_id = $_GET['delete'];
@@ -26,9 +31,21 @@ if (isset($_GET['delete'])) {
 }
 
 // Lấy danh sách
-$stmt = $pdo->query("SELECT * FROM hotels ORDER BY id DESC");
+$stmt = $pdo->query("SELECT * FROM hotels ORDER BY id ASC");
 $hotels = $stmt->fetchAll();
 ?>
+
+<?php if (!empty($flashSuccess)): ?>
+    <div style="margin: 20px 0; padding: 12px 15px; border-radius: 6px; background:#e8f7ee; color:#1f6b3b; border:1px solid #b7e2c7;">
+        <div style="margin-bottom: 10px;">
+            <?= htmlspecialchars($flashSuccess) ?>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="index.php" class="btn-primary" style="text-decoration:none; display:inline-block;">Về trang chủ</a>
+            <a href="adminadd.php" class="btn-outline" style="text-decoration:none; display:inline-block;">Thêm khách sạn mới</a>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
     <h2>Bảng Điều Khiển Admin (Quản lý Khách sạn)</h2>
