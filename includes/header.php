@@ -20,7 +20,7 @@
 
                 <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'admin'): ?>
                     <!-- Đã đăng nhập với quyền ADMIN -->
-                    &nbsp;<span class="nav-user"><b><?= htmlspecialchars($_SESSION['username']) ?></b></span>
+                    &nbsp;<a href="admin.php" class="nav-user"><b><?= htmlspecialchars($_SESSION['username']) ?></b></a>
                     <a href="logout.php" class="btn-outline">Đăng xuất</a>
 
                 <?php elseif (isset($_SESSION['user_id'])): ?>
