@@ -16,8 +16,33 @@ if (!$hotel) {
     die('Khách sạn không tồn tại.');
 }
 
+/**
+ * Chuẩn hóa chuỗi Unicode về dạng dựng sẵn để dấu tiếng Việt
+ * không bị tách khỏi ký tự khi dùng font serif.
+ */
+function normalizeDisplayText(?string $value): string
+{
+    $value = (string) ($value ?? '');
+
+    if (class_exists('Normalizer')) {
+        $normalized = Normalizer::normalize($value, Normalizer::FORM_C);
+
+        if ($normalized !== false) {
+            return $normalized;
+        }
+    }
+
+    return $value;
+}
+
+foreach (['name', 'address', 'phone', 'vibe', 'description'] as $field) {
+    if (array_key_exists($field, $hotel)) {
+        $hotel[$field] = normalizeDisplayText($hotel[$field]);
+    }
+}
+
 // Chuẩn hóa hạng sao để hiển thị được số thập phân, ví dụ 3,5 hoặc 4,5.
-$starRating = max(0, min(5, (float) ($hotel['star_rating'] ?? 0)));
+$starRating = max(0, min(5, (float) ($hotel['star_rating'] ?? $hotel['stars'] ?? 0)));
 
 /**
  * Hiển thị tối đa 5 biểu tượng sao, có hỗ trợ nửa sao.
@@ -44,16 +69,115 @@ function renderHotelStars(float $rating): string
     return $html . '</span>';
 }
 
-// 2. Lấy hình ảnh bằng cách quét thư mục uploads
-$imagePattern = 'uploads/hotel_' . $id . '_*.*';
-$images = glob($imagePattern) ?: [];
+// 2. Lấy hình ảnh của khách sạn.
+// Ảnh hotel_ID_primary.* dùng làm ảnh nền chính.
+// Chỉ đưa các ảnh còn tồn tại vào slider để tránh hiện khung ảnh lỗi.
+function normalizeHotelImagePath(?string $imagePath): ?string
+{
+    $imagePath = trim((string) ($imagePath ?? ''));
 
-// Đưa ảnh primary lên đầu nếu có
-usort($images, static function (string $a, string $b): int {
-    $aPrimary = strpos($a, '_primary.') !== false;
-    $bPrimary = strpos($b, '_primary.') !== false;
-    return $bPrimary <=> $aPrimary;
-});
+    if ($imagePath === '') {
+        return null;
+    }
+
+    // Link ảnh bên ngoài vẫn giữ nguyên.
+    if (preg_match('~^https?://~i', $imagePath)) {
+        return $imagePath;
+    }
+
+    $imagePath = str_replace('\\', '/', $imagePath);
+    $imagePath = preg_replace('~^\./~', '', $imagePath);
+
+    // Chuẩn hóa một số đường dẫn thường gặp trong database.
+    if (strpos($imagePath, '/hoteltool/') === 0) {
+        $imagePath = substr($imagePath, strlen('/hoteltool/'));
+    } else {
+        $imagePath = ltrim($imagePath, '/');
+    }
+
+    return is_file($imagePath) ? $imagePath : null;
+}
+
+$diskImages = glob(
+    'uploads/hotel_' . $id . '_*.{jpg,jpeg,png,gif,webp}',
+    GLOB_BRACE
+) ?: [];
+
+$dbImageRows = [];
+
+try {
+    $stmtHotelImages = $pdo->prepare(
+        'SELECT image_url, is_primary
+         FROM hotel_images
+         WHERE hotel_id = ?
+         ORDER BY is_primary DESC, id ASC'
+    );
+    $stmtHotelImages->execute([$id]);
+    $dbImageRows = $stmtHotelImages->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    $dbImageRows = [];
+}
+
+$allImages = [];
+
+foreach ($diskImages as $imagePath) {
+    $usableImage = normalizeHotelImagePath($imagePath);
+
+    if ($usableImage !== null) {
+        $allImages[] = $usableImage;
+    }
+}
+
+foreach ($dbImageRows as $imageRow) {
+    $usableImage = normalizeHotelImagePath($imageRow['image_url'] ?? null);
+
+    if ($usableImage !== null) {
+        $allImages[] = $usableImage;
+    }
+}
+
+$allImages = array_values(array_unique($allImages));
+natsort($allImages);
+$allImages = array_values($allImages);
+
+$primaryImage = null;
+
+// Ưu tiên ảnh có đúng cú pháp hotel_ID_primary.*
+foreach ($allImages as $imagePath) {
+    if (strpos(basename(parse_url($imagePath, PHP_URL_PATH) ?? $imagePath), '_primary.') !== false) {
+        $primaryImage = $imagePath;
+        break;
+    }
+}
+
+// Nếu bảng hotel_images đánh dấu ảnh chính thì dùng ảnh đó.
+if ($primaryImage === null) {
+    foreach ($dbImageRows as $imageRow) {
+        if (!empty($imageRow['is_primary'])) {
+            $usableImage = normalizeHotelImagePath($imageRow['image_url'] ?? null);
+
+            if ($usableImage !== null) {
+                $primaryImage = $usableImage;
+                break;
+            }
+        }
+    }
+}
+
+if ($primaryImage === null) {
+    $primaryImage = $allImages[0]
+        ?? 'https://via.placeholder.com/1600x760?text=No+Image';
+}
+
+// Slider ưu tiên các ảnh phụ; nếu không có thì vẫn hiển thị ảnh primary.
+$carouselImages = array_values(array_filter(
+    $allImages,
+    static fn (string $imagePath): bool => $imagePath !== $primaryImage
+));
+
+if (!$carouselImages) {
+    $carouselImages = [$primaryImage];
+}
 
 // 3. Lấy phòng và giá
 $stmtRoom = $pdo->prepare('SELECT * FROM rooms WHERE hotel_id = ? ORDER BY capacity ASC, price ASC');
@@ -105,302 +229,767 @@ function amenityIcon(?string $icon): string
 ?>
 
 <style>
-    .detail-container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
+    /* ===== Thiết lập chung cho riêng trang chi tiết ===== */
+    .hotel-detail-page {
+        --detail-accent: #744631;
+        --detail-text: #2c2c2c;
+        --detail-muted: #686868;
+        --detail-surface: #ffffff;
+        --detail-page-bg: #f7f4ef;
+
+        margin-right: calc(50% - 50vw);
+        margin-left: calc(50% - 50vw);
+        overflow-x: clip;
+        background: var(--detail-page-bg);
+        color: var(--detail-text);
+        font-family: "Segoe UI", Arial, Helvetica, sans-serif;
     }
 
-    .hotel-gallery {
+    .hotel-detail-page *,
+    .hotel-detail-page *::before,
+    .hotel-detail-page *::after {
+        box-sizing: border-box;
+    }
+
+    /* ===== Ảnh primary và tên khách sạn ===== */
+    .hotel-hero {
+        position: relative;
+        min-height: 520px;
+        padding: 78px 24px 190px;
+
         display: flex;
-        gap: 10px;
-        overflow-x: auto;
-        margin-bottom: 20px;
+        align-items: flex-start;
+        justify-content: center;
+
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        color: #fff;
+        text-align: center;
     }
 
-    .hotel-gallery img {
-        height: 300px;
-        max-width: 100%;
-        border-radius: 8px;
-        object-fit: cover;
+    .hotel-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(4, 18, 39, 0.34) 0%,
+                rgba(4, 18, 39, 0.44) 58%,
+                rgba(4, 18, 39, 0.52) 100%
+            );
     }
 
-    .hotel-summary {
-        color: #666;
+    .hotel-hero-title {
+        position: relative;
+        z-index: 1;
+        max-width: 1080px;
+        margin: 0;
+        padding-top: 30px;
+
+        color: #fff;
+        font-family: Cambria, "Times New Roman", serif;
+        font-size: clamp(34px, 4.2vw, 58px);
+        font-weight: 500;
+        line-height: 1.18;
+        letter-spacing: 0;
+        text-wrap: balance;
+        text-shadow: 0 3px 13px rgba(0, 0, 0, 0.58);
     }
 
-    .hotel-information {
+    /* ===== Thông tin khách sạn và slider ===== */
+    .hotel-feature-section {
+        position: relative;
+        z-index: 10;
+        width: min(1140px, calc(100% - 40px));
+        margin: -150px auto 78px;
+
         display: grid;
-        gap: 10px;
-        margin: 14px 0 22px;
-        color: #555;
+        grid-template-columns: minmax(0, 56%) minmax(0, 44%);
+        align-items: center;
     }
 
-    .hotel-information-row {
+    .hotel-intro-card {
+        position: relative;
+        z-index: 1;
+        min-height: 370px;
+        padding: 52px 118px 48px 54px;
+
+        background: rgba(255, 255, 255, 0.99);
+        box-shadow: 0 14px 38px rgba(37, 28, 20, 0.13);
+    }
+
+    .hotel-intro-number {
+        position: absolute;
+        top: 28px;
+        left: 34px;
+
+        color: #f0efed;
+        font-family: Cambria, "Times New Roman", serif;
+        font-size: 88px;
+        font-weight: 400;
+        line-height: 1;
+        user-select: none;
+    }
+
+    .hotel-intro-title {
+        position: relative;
+        z-index: 1;
+        margin: 28px 0 30px;
+
+        color: #242424;
+        font-size: 29px;
+        font-weight: 400;
+        line-height: 1.25;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+    }
+
+    .hotel-quick-information {
+        position: relative;
+        z-index: 1;
         display: grid;
-        grid-template-columns: 125px minmax(0, 1fr);
+        gap: 16px;
+        margin: 0;
+    }
+
+    .hotel-quick-row {
+        display: grid;
+        grid-template-columns: 122px minmax(0, 1fr);
+        gap: 18px;
         align-items: start;
-        gap: 12px;
-        line-height: 1.5;
+        line-height: 1.55;
     }
 
-    .hotel-information-label {
-        color: #2f2f2f;
-        font-weight: 700;
+    .hotel-quick-label {
+        color: #303030;
+        font-weight: 650;
     }
 
-    .hotel-information-value {
+    .hotel-quick-value {
         min-width: 0;
-        word-break: break-word;
+        color: var(--detail-muted);
+        word-break: normal;
+        overflow-wrap: anywhere;
     }
 
     .hotel-rating-value {
         display: flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
+        min-height: 24px;
     }
 
     .hotel-stars {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
+        gap: 5px;
         line-height: 1;
     }
 
     .hotel-star {
         position: relative;
         display: inline-block;
-        width: 22px;
-        height: 22px;
-        color: #d9d9d9;
-        font-size: 24px;
-        line-height: 22px;
+        width: 21px;
+        height: 21px;
+        color: #d7d7d7;
+        font-size: 23px;
+        line-height: 21px;
     }
 
     .hotel-star-full {
-        color: #ffc400;
+        color: #edae00;
     }
 
     .hotel-star-half {
-        color: #d9d9d9;
+        color: #d7d7d7;
     }
 
     .hotel-star-half::before {
-        content: '★';
+        content: "★";
         position: absolute;
-        top: 0;
-        left: 0;
+        inset: 0 auto 0 0;
         width: 50%;
         overflow: hidden;
-        color: #ffc400;
+        color: #edae00;
         white-space: nowrap;
     }
 
-    .detail-section {
-        margin: 24px 0;
+    /* ===== Slider ảnh phụ ===== */
+    .hotel-carousel {
+        position: relative;
+        z-index: 2;
+        height: 338px;
+        margin-left: -66px;
+        overflow: hidden;
+
+        background: #ececec;
+        box-shadow: 0 16px 38px rgba(31, 25, 20, 0.22);
+    }
+
+    .hotel-carousel-track {
+        display: flex;
+        height: 100%;
+        transition: transform 0.55s ease;
+        will-change: transform;
+    }
+
+    .hotel-carousel-slide {
+        min-width: 100%;
+        height: 100%;
+        background: #e7e7e7;
+    }
+
+    .hotel-carousel-slide img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .hotel-carousel-button {
+        position: absolute;
+        z-index: 3;
+        top: 50%;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 50%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(26, 26, 26, 0.52);
+        color: #fff;
+        cursor: pointer;
+        font-size: 27px;
+        line-height: 1;
+        transform: translateY(-50%);
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease,
+            opacity 0.2s ease;
+    }
+
+    .hotel-carousel-button:hover {
+        background: rgba(26, 26, 26, 0.80);
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    .hotel-carousel-button.previous {
+        left: 15px;
+    }
+
+    .hotel-carousel-button.next {
+        right: 15px;
+    }
+
+    .hotel-carousel-dots {
+        position: absolute;
+        z-index: 3;
+        right: 0;
+        bottom: 16px;
+        left: 0;
+
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .hotel-carousel-dot {
+        width: 8px;
+        height: 8px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.90);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.30);
+        cursor: pointer;
+    }
+
+    .hotel-carousel-dot.active {
+        background: #fff;
+        transform: scale(1.15);
+    }
+
+    /* ===== Card trắng chính giữa ===== */
+    .hotel-content-card {
+        width: min(960px, calc(100% - 40px));
+        margin: 0 auto 74px;
+        padding: 54px 62px 58px;
+
+        background: var(--detail-surface);
+        color: var(--detail-text);
+        box-shadow: 0 7px 29px rgba(38, 31, 25, 0.17);
+    }
+
+    .hotel-content-section + .hotel-content-section {
+        margin-top: 47px;
+    }
+
+    .hotel-section-heading {
+        position: relative;
+        margin: 0 0 29px;
+        padding-bottom: 18px;
+
+        color: #282828;
+        font-family: Cambria, "Times New Roman", serif;
+        font-size: 25px;
+        font-weight: 500;
+        line-height: 1.3;
+        letter-spacing: 0;
+        text-align: center;
+    }
+
+    .hotel-section-heading::before {
+        content: "";
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        width: 84px;
+        height: 1px;
+        background: #dcdcdc;
+        transform: translateX(-50%);
+    }
+
+    .hotel-section-heading::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #dcdcdc;
+        transform: translateX(-50%);
+    }
+
+    .hotel-description {
+        max-width: 820px;
+        margin: 0 auto;
+
+        color: #606060;
+        font-size: 15px;
+        line-height: 1.85;
+        text-align: left;
     }
 
     .amenities-list {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        column-gap: 48px;
-        row-gap: 14px;
-        margin-top: 14px;
+        column-gap: 64px;
+        row-gap: 16px;
     }
 
     .amenity-item {
         display: flex;
-        align-items: center;
-        gap: 11px;
+        align-items: flex-start;
+        gap: 12px;
         min-width: 0;
-        line-height: 1.45;
+
+        color: #484848;
+        line-height: 1.5;
     }
 
     .amenity-icon {
         width: 21px;
         height: 21px;
         flex: 0 0 21px;
+        margin-top: 1px;
+
         fill: none;
-        stroke: #4a4a4a;
-        stroke-width: 1.6;
+        stroke: var(--detail-accent);
+        stroke-width: 1.7;
         stroke-linecap: round;
         stroke-linejoin: round;
     }
 
     .amenity-name {
-        color: #333;
-        word-break: break-word;
+        min-width: 0;
+        overflow-wrap: anywhere;
     }
 
-    .amenities-empty {
+    .amenities-empty,
+    .rooms-empty {
         color: #777;
-        margin: 10px 0 0;
-    }
-
-
-    .room-price-section {
-        margin-top: 30px;
-    }
-
-    .room-price-title {
-        margin-bottom: 14px;
+        text-align: center;
     }
 
     .room-price-wrapper {
         overflow-x: auto;
-        background: #fff;
     }
 
     .room-price-table {
         width: 100%;
-        min-width: 460px;
-        table-layout: fixed;
+        min-width: 520px;
         border-collapse: collapse;
-        border: 1px solid #d8cec8;
+        table-layout: fixed;
     }
 
     .room-price-table th,
     .room-price-table td {
-        width: 50%;
-        padding: 14px 16px;
-        border: 1px solid #d8cec8;
-        text-align: center;
+        padding: 17px 16px;
+        border-bottom: 1px solid #e2e2e2;
+        text-align: left;
         vertical-align: middle;
     }
 
     .room-price-table th {
-        background: #fff;
-        color: #2f2f2f;
+        color: #313131;
         font-weight: 700;
     }
 
+    .room-price-table th:last-child,
+    .room-price-table td:last-child {
+        text-align: right;
+    }
+
     .room-price {
-        color: #e65337;
+        color: #dc5639;
         font-weight: 700;
         white-space: nowrap;
     }
 
-    .rooms-empty {
-        color: #777;
-        text-align: center !important;
+    @media (max-width: 1020px) {
+        .hotel-hero {
+            min-height: 470px;
+            padding-bottom: 165px;
+        }
+
+        .hotel-feature-section {
+            grid-template-columns: 1fr;
+            width: min(900px, calc(100% - 36px));
+            margin-top: -130px;
+        }
+
+        .hotel-intro-card {
+            min-height: auto;
+            padding: 52px 48px 122px;
+        }
+
+        .hotel-carousel {
+            width: calc(100% - 70px);
+            height: 390px;
+            margin: -82px auto 0;
+        }
     }
 
     @media (max-width: 700px) {
-        .hotel-information-row {
+        .hotel-hero {
+            min-height: 390px;
+            padding: 55px 18px 140px;
+        }
+
+        .hotel-hero-title {
+            padding-top: 22px;
+            font-size: clamp(31px, 9vw, 43px);
+        }
+
+        .hotel-feature-section {
+            width: min(100% - 22px, 900px);
+            margin-top: -105px;
+            margin-bottom: 48px;
+        }
+
+        .hotel-intro-card {
+            padding: 42px 25px 96px;
+        }
+
+        .hotel-intro-number {
+            top: 24px;
+            left: 22px;
+            font-size: 70px;
+        }
+
+        .hotel-intro-title {
+            margin-top: 28px;
+            font-size: 23px;
+        }
+
+        .hotel-quick-row {
             grid-template-columns: 1fr;
-            gap: 2px;
+            gap: 3px;
+        }
+
+        .hotel-carousel {
+            width: calc(100% - 24px);
+            height: 270px;
+            margin-top: -64px;
+        }
+
+        .hotel-carousel-button {
+            width: 38px;
+            height: 38px;
+        }
+
+        .hotel-content-card {
+            width: min(100% - 22px, 960px);
+            padding: 40px 24px 44px;
+            margin-bottom: 48px;
         }
 
         .amenities-list {
             grid-template-columns: 1fr;
-            row-gap: 13px;
-        }
-
-        .hotel-gallery img {
-            height: 230px;
+            row-gap: 14px;
         }
     }
 </style>
 
-<div class="detail-container">
-    <!-- Khu vực 1: Banner / Hình ảnh -->
-    <div class="hotel-gallery">
-        <?php if ($images): ?>
-            <?php foreach ($images as $imagePath): ?>
-                <img src="<?= htmlspecialchars($imagePath) ?>" alt="Hình ảnh <?= htmlspecialchars($hotel['name']) ?>">
-            <?php endforeach; ?>
-        <?php else: ?>
-            <img src="https://via.placeholder.com/600x400?text=No+Image" alt="Khách sạn chưa có hình ảnh">
-        <?php endif; ?>
-    </div>
+<div class="hotel-detail-page">
+    <!-- Ảnh primary đặt dưới tên khách sạn -->
+    <section
+        class="hotel-hero"
+        style="
+            background-image:
+                linear-gradient(rgba(8, 8, 8, 0.62), rgba(8, 8, 8, 0.66)),
+                url('<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>');
+        "
+    >
+        <h1 class="hotel-hero-title">
+            <?= htmlspecialchars($hotel['name']) ?>
+        </h1>
+    </section>
 
-    <!-- Khu vực 2: Thông tin chung -->
-    <h1><?= htmlspecialchars($hotel['name']) ?></h1>
+    <!-- Card thông tin bên trái và slider ảnh bên phải -->
+    <section class="hotel-feature-section">
+        <div class="hotel-intro-card">
+            <span class="hotel-intro-number" aria-hidden="true">01</span>
 
-    <div class="hotel-information">
-        <div class="hotel-information-row">
-            <span class="hotel-information-label">Địa chỉ:</span>
-            <span class="hotel-information-value">
-                <?= htmlspecialchars($hotel['address'] ?? 'Chưa cập nhật') ?>
-            </span>
+            <h2 class="hotel-intro-title">Thông tin khách sạn</h2>
+
+            <div class="hotel-quick-information">
+                <div class="hotel-quick-row">
+                    <span class="hotel-quick-label">Địa chỉ:</span>
+                    <span class="hotel-quick-value">
+                        <?= htmlspecialchars($hotel['address'] ?? 'Chưa cập nhật') ?>
+                    </span>
+                </div>
+
+                <div class="hotel-quick-row">
+                    <span class="hotel-quick-label">Số điện thoại:</span>
+                    <span class="hotel-quick-value">
+                        <?= htmlspecialchars($hotel['phone'] ?? 'Chưa cập nhật') ?>
+                    </span>
+                </div>
+
+                <div class="hotel-quick-row">
+                    <span class="hotel-quick-label">Hạng sao:</span>
+                    <span class="hotel-quick-value hotel-rating-value">
+                        <?= renderHotelStars($starRating) ?>
+                    </span>
+                </div>
+
+                <div class="hotel-quick-row">
+                    <span class="hotel-quick-label">Phong cách:</span>
+                    <span class="hotel-quick-value">
+                        <?= htmlspecialchars($hotel['vibe'] ?? 'Chưa cập nhật') ?>
+                    </span>
+                </div>
+            </div>
         </div>
 
-        <div class="hotel-information-row">
-            <span class="hotel-information-label">Số điện thoại:</span>
-            <span class="hotel-information-value">
-                <?= htmlspecialchars($hotel['phone'] ?? 'Chưa cập nhật') ?>
-            </span>
-        </div>
-
-        <div class="hotel-information-row">
-            <span class="hotel-information-label">Hạng sao:</span>
-            <span class="hotel-information-value hotel-rating-value">
-                <?= renderHotelStars($starRating) ?>
-            </span>
-        </div>
-
-        <div class="hotel-information-row">
-            <span class="hotel-information-label">Phong cách:</span>
-            <span class="hotel-information-value">
-                <?= htmlspecialchars($hotel['vibe'] ?? 'Chưa cập nhật') ?>
-            </span>
-        </div>
-    </div>
-
-    <div class="detail-section">
-        <h3>Mô tả</h3>
-        <p><?= nl2br(htmlspecialchars($hotel['description'])) ?></p>
-    </div>
-
-    <div class="detail-section amenities-section">
-        <h3>Tiện nghi và dịch vụ</h3>
-
-        <?php if ($amenities): ?>
-            <div class="amenities-list">
-                <?php foreach ($amenities as $amenity): ?>
-                    <div class="amenity-item">
-                        <?= amenityIcon($amenity['icon']) ?>
-                        <span class="amenity-name"><?= htmlspecialchars($amenity['name']) ?></span>
+        <div class="hotel-carousel" id="hotelCarousel" aria-label="Hình ảnh khách sạn">
+            <div class="hotel-carousel-track">
+                <?php foreach ($carouselImages as $imageIndex => $imagePath): ?>
+                    <div class="hotel-carousel-slide">
+                        <img
+                            src="<?= htmlspecialchars($imagePath) ?>"
+                            alt="Hình ảnh <?= $imageIndex + 1 ?> của <?= htmlspecialchars($hotel['name']) ?>"
+                            loading="<?= $imageIndex === 0 ? 'eager' : 'lazy' ?>"
+                            onerror="this.onerror=null; this.src='<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>';"
+                        >
                     </div>
                 <?php endforeach; ?>
             </div>
-        <?php else: ?>
-            <p class="amenities-empty">Khách sạn chưa cập nhật thông tin tiện nghi.</p>
-        <?php endif; ?>
-    </div>
 
-    <!-- Khu vực 3: Bảng giá phòng -->
-    <section class="room-price-section">
-        <h3 class="room-price-title">Bảng giá phòng</h3>
+            <?php if (count($carouselImages) > 1): ?>
+                <button
+                    type="button"
+                    class="hotel-carousel-button previous"
+                    aria-label="Xem ảnh trước"
+                >
+                    &#8249;
+                </button>
 
-        <div class="room-price-wrapper">
-            <table class="room-price-table">
-                <thead>
-                    <tr>
-                        <th>Loại phòng</th>
-                        <th>Mức giá / Đêm</th>
-                    </tr>
-                </thead>
+                <button
+                    type="button"
+                    class="hotel-carousel-button next"
+                    aria-label="Xem ảnh tiếp theo"
+                >
+                    &#8250;
+                </button>
 
-                <tbody>
-                    <?php if ($rooms): ?>
-                        <?php foreach ($rooms as $room): ?>
-                            <tr>
-                                <td>Phòng cho <?= (int) $room['capacity'] ?> người</td>
-                                <td class="room-price"><?= number_format((float) $room['price']) ?> đ</td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
+                <div class="hotel-carousel-dots" aria-label="Chọn ảnh">
+                    <?php foreach ($carouselImages as $imageIndex => $imagePath): ?>
+                        <button
+                            type="button"
+                            class="hotel-carousel-dot <?= $imageIndex === 0 ? 'active' : '' ?>"
+                            data-index="<?= $imageIndex ?>"
+                            aria-label="Xem ảnh <?= $imageIndex + 1 ?>"
+                        ></button>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- Card trắng chính giữa có đổ bóng -->
+    <section class="hotel-content-card">
+        <div class="hotel-content-section">
+            <h2 class="hotel-section-heading">Mô tả</h2>
+
+            <p class="hotel-description">
+                <?= nl2br(htmlspecialchars($hotel['description'] ?? 'Khách sạn chưa cập nhật mô tả.')) ?>
+            </p>
+        </div>
+
+        <div class="hotel-content-section">
+            <h2 class="hotel-section-heading">Tiện nghi và dịch vụ</h2>
+
+            <?php if ($amenities): ?>
+                <div class="amenities-list">
+                    <?php foreach ($amenities as $amenity): ?>
+                        <div class="amenity-item">
+                            <?= amenityIcon($amenity['icon']) ?>
+
+                            <span class="amenity-name">
+                                <?= htmlspecialchars($amenity['name']) ?>
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p class="amenities-empty">
+                    Khách sạn chưa cập nhật thông tin tiện nghi.
+                </p>
+            <?php endif; ?>
+        </div>
+
+        <div class="hotel-content-section">
+            <h2 class="hotel-section-heading">Bảng giá phòng</h2>
+
+            <div class="room-price-wrapper">
+                <table class="room-price-table">
+                    <thead>
                         <tr>
-                            <td colspan="2" class="rooms-empty">Khách sạn chưa cập nhật giá phòng.</td>
+                            <th>Loại phòng</th>
+                            <th>Mức giá / Đêm</th>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    </thead>
+
+                    <tbody>
+                        <?php if ($rooms): ?>
+                            <?php foreach ($rooms as $room): ?>
+                                <tr>
+                                    <td>
+                                        Phòng cho <?= (int) $room['capacity'] ?> người
+                                    </td>
+
+                                    <td class="room-price">
+                                        <?= number_format((float) $room['price']) ?> đ
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="2" class="rooms-empty">
+                                    Khách sạn chưa cập nhật giá phòng.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const carousel = document.getElementById('hotelCarousel');
+
+    if (!carousel) {
+        return;
+    }
+
+    const track = carousel.querySelector('.hotel-carousel-track');
+    const slides = Array.from(
+        carousel.querySelectorAll('.hotel-carousel-slide')
+    );
+    const previousButton = carousel.querySelector(
+        '.hotel-carousel-button.previous'
+    );
+    const nextButton = carousel.querySelector(
+        '.hotel-carousel-button.next'
+    );
+    const dots = Array.from(
+        carousel.querySelectorAll('.hotel-carousel-dot')
+    );
+
+    if (!track || slides.length <= 1) {
+        return;
+    }
+
+    let currentIndex = 0;
+    let autoSlideTimer = null;
+
+    function showSlide(index) {
+        currentIndex = (index + slides.length) % slides.length;
+        track.style.transform =
+            'translateX(-' + (currentIndex * 100) + '%)';
+
+        dots.forEach(function (dot, dotIndex) {
+            dot.classList.toggle('active', dotIndex === currentIndex);
+        });
+    }
+
+    function startAutoSlide() {
+        window.clearInterval(autoSlideTimer);
+
+        autoSlideTimer = window.setInterval(function () {
+            showSlide(currentIndex + 1);
+        }, 3000);
+    }
+
+    function restartAutoSlide() {
+        startAutoSlide();
+    }
+
+    if (previousButton) {
+        previousButton.addEventListener('click', function () {
+            showSlide(currentIndex - 1);
+            restartAutoSlide();
+        });
+    }
+
+    if (nextButton) {
+        nextButton.addEventListener('click', function () {
+            showSlide(currentIndex + 1);
+            restartAutoSlide();
+        });
+    }
+
+    dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+            showSlide(Number(this.dataset.index));
+            restartAutoSlide();
+        });
+    });
+
+    carousel.addEventListener('mouseenter', function () {
+        window.clearInterval(autoSlideTimer);
+    });
+
+    carousel.addEventListener('mouseleave', function () {
+        startAutoSlide();
+    });
+
+    showSlide(0);
+    startAutoSlide();
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
