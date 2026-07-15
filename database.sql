@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th7 15, 2026 lúc 10:52 AM
+-- Thời gian đã tạo: Th7 15, 2026 lúc 12:51 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -74,7 +74,8 @@ CREATE TABLE `comparison_history` (
 
 INSERT INTO `comparison_history` (`id`, `user_id`, `hotel_ids`, `created_at`) VALUES
 (1, 2, '5,7,9', '2026-07-15 07:47:48'),
-(2, 2, '2,3', '2026-07-15 07:52:09');
+(2, 2, '2,3', '2026-07-15 07:52:09'),
+(3, 1, '10,12', '2026-07-15 09:04:44');
 
 -- --------------------------------------------------------
 
@@ -123,7 +124,8 @@ INSERT INTO `feed_posts` (`id`, `author_name`, `author_id`, `hotel_id`, `content
 (1, 'nganphuong', NULL, 3, 'phòng ok', 'uploads/post_1784098198_2.jpg', 2, '2026-07-15 06:49:58'),
 (2, 'phuong', NULL, 1, 'Vừa qua nhà mình có chuyến đi tới Cần Thơ, phân vân không biết lựa khách sạn nào tại cũng lần đầu tới miền Tây, may mà có trang web này hỗ trợ so sánh tìm kiếm được khách sạn Mường Thanh này vừa đúng nhu cầu mà nhanh gọn luôn không cần phải đi lựa nhiều trang web. Phòng ốc sạch sẽ, có bữa sáng ngon và đậm chất miền Tây lắm. Vị trí cũng gần bến Ninh Kiều, buổi tối đi chơi cũng gần và ngắm cảnh đêm từ khách sạn rất đẹp.', 'uploads/post_1784102373_4.jpg', 2, '2026-07-15 07:59:33'),
 (3, 'nnnnnn', NULL, 1, 'Rất đẹp và sang trọng, giá hơi cao nhưng dịch vụ rất ok.\r\nNhược điểm là tôi chưa được đi bao giờ', NULL, 0, '2026-07-15 08:04:20'),
-(7, 'phuong', 4, NULL, 'ksan này oke nha đồ ăn ngon', NULL, 0, '2026-07-15 08:18:19');
+(7, 'phuong', 4, NULL, 'ksan này oke nha đồ ăn ngon', NULL, 0, '2026-07-15 08:18:19'),
+(8, 'Sun6pack', 7, 1, 'lễ tân thân thiện', NULL, 0, '2026-07-15 10:47:36');
 
 -- --------------------------------------------------------
 
@@ -200,7 +202,8 @@ INSERT INTO `hotels` (`id`, `name`, `address`, `phone`, `star_rating`, `vibe`, `
 (8, 'KP Hotel Boutique', '45 Ngô Quyền, Ninh Kiều, Cần Thơ, Việt Nam', '0292 399 1008', 5.0, 'Thân thiện', 'KP Hotel mang phong cách tối giản, lịch lãm, nép mình yên tĩnh cách bến Ninh Kiều vài phút đi bộ. Như một trạm sạc năng lượng giữa lòng phố thị, khách sạn sở hữu phòng nghỉ tông màu trung tính ấm áp và nhà hàng giao thoa ẩm thực Á - Singapore độc đáo.'),
 (9, 'Cồn Khương Resort', '99A Nguyễn Hữu Cầu, Ninh Kiều, Cần Thơ, Việt Nam', '0292 399 1009', 4.0, 'Nghỉ dưỡng', 'Cồn Khương Resort sở hữu vị trí đắc địa ôm sát dòng sông Hậu hiền hòa, gây ấn tượng bởi hệ thống bungalow mang hình dáng đó bắt cá độc đáo. Khu nghỉ dưỡng kết hợp hài hòa giữa không gian lưu trú hiện đại và sân vườn ngập tràn sắc sen súng, mang đến cho du khách một khoảng lặng thư thái, riêng tư tuyệt đối ngay cạnh trung tâm Tây Đô sầm uất.'),
 (10, 'Apple Hotel', '431 Đường 30 tháng 4, Ninh Kiều, Cần Thơ, Việt Nam', '0292 399 1010', 3.0, 'Thanh lịch', 'Apple Hotel Cần Thơ rũ bỏ vẻ trầm mặc truyền thống để khoác lên mình phong cách hiện đại, năng động. Không chỉ là nơi lưu trú, khách sạn mang đến trải nghiệm đô thị tiện lợi với hệ thống phòng tối giản ngập tràn ánh sáng, hồ bơi lộng gió và xe đạp miễn phí để bạn tự do len lỏi khám phá các khu phố mua sắm náo nhiệt xung quanh.'),
-(12, 'Sheraton Cần Thơ', NULL, NULL, 3.0, 'Sang Trọng', NULL);
+(13, 'Sheraton', '209 đường 30 Tháng 4, phường Ninh Kiều, TP Cần Thơ.', '02923761888', 5.0, 'Hiện đại', 'Sheraton Can Tho là một khách sạn nằm trong khu vực an ninh, toạ lạc tại Hưng Lợi. Quầy tiếp tân 24 giờ luôn sẵn sàng phục vụ quý khách từ thủ tục nhận phòng đến trả phòng hay bất kỳ yêu cầu nào. Nếu cần giúp đỡ xin hãy liên hệ đội ngũ tiếp tân, chúng tôi luôn sẵn sàng hỗ trợ quý khách. Sóng WiFi phủ khắp các khu vực chung của khách sạn cho phép quý khách luôn kết nối với gia đình và bè bạn.'),
+(14, 'Lion Hotel', '62 đường 30/4 phường Ninh Kiều Thành phố Cần Thơ', '02923668833', 4.0, 'Vintage', 'Tọa lạc cách Bến Ninh Kiều 13 phút đi bộ và Trung tâm thương mại Vincom Xuân Khánh chưa đến 1 km, LION 17 Hotel cung cấp các phòng điều hòa và phòng tắm riêng ở Cần Thơ. Khách sạn 3 sao này có quầy lễ tân 24 giờ. Đây là chỗ nghỉ không hút thuốc và nằm cách Vincom Plaza Hùng Vương 2.6 km.');
 
 -- --------------------------------------------------------
 
@@ -336,7 +339,16 @@ INSERT INTO `hotel_amenities` (`hotel_id`, `amenity_id`) VALUES
 (10, 11),
 (10, 12),
 (10, 13),
-(10, 15);
+(10, 15),
+(14, 4),
+(14, 5),
+(14, 7),
+(14, 8),
+(14, 9),
+(14, 10),
+(14, 11),
+(14, 13),
+(14, 15);
 
 -- --------------------------------------------------------
 
@@ -376,14 +388,15 @@ INSERT INTO `hotel_images` (`id`, `hotel_id`, `image_url`, `is_primary`) VALUES
 (18, 9, 'https://via.placeholder.com/600x400?text=Con+Khuong+2', 0),
 (19, 10, 'https://via.placeholder.com/600x400?text=Apple+1', 1),
 (20, 10, 'https://via.placeholder.com/600x400?text=Apple+2', 0),
-(21, 12, 'uploads/hotel_12_primary.jpg', 1),
-(22, 12, 'uploads/hotel_12_1.jpg', 0),
-(23, 12, 'uploads/hotel_12_2.jfif', 0),
-(24, 12, 'uploads/hotel_12_3.jfif', 0),
-(25, 12, 'uploads/hotel_12_4.jfif', 0),
-(26, 12, 'uploads/hotel_12_5.jfif', 0),
-(27, 12, 'uploads/hotel_12_6.jfif', 0),
-(28, 12, 'uploads/hotel_12_7.jfif', 0);
+(29, 13, 'uploads/hotel_13_primary.webp', 1),
+(30, 13, 'uploads/hotel_13_1.webp', 0),
+(31, 13, 'uploads/hotel_13_2.webp', 0),
+(32, 13, 'uploads/hotel_13_3.webp', 0),
+(33, 13, 'uploads/hotel_13_4.webp', 0),
+(34, 14, 'uploads/hotel_14_primary.jpg', 1),
+(35, 14, 'uploads/hotel_14_1.jpg', 0),
+(36, 14, 'uploads/hotel_14_2.jpg', 0),
+(37, 14, 'uploads/hotel_14_3.jpg', 0);
 
 -- --------------------------------------------------------
 
@@ -423,8 +436,10 @@ INSERT INTO `rooms` (`id`, `hotel_id`, `capacity`, `price`) VALUES
 (18, 9, 4, 2200000),
 (19, 10, 2, 350000),
 (20, 10, 4, 550000),
-(23, 12, 2, 1800000),
-(24, 12, 4, 4300000);
+(25, 13, 2, 250000),
+(26, 13, 4, 4500000),
+(27, 14, 2, 1950000),
+(28, 14, 4, 3500000);
 
 -- --------------------------------------------------------
 
@@ -450,7 +465,8 @@ INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`) VALUES
 (3, 'cats', 'catmeomeo@gmail.com', '$2y$10$WIJktN70PDkOiJO/1Y0ym.CCY9ZlmKQ/7QwOBBZugRdGYMGVENhvG', 'customer'),
 (4, 'phuong', 'ipadxau2016@gmail.com', '$2y$10$8McqqAjLw2GrJgPYc7uKE.rY6oEhYZo8afQ9LJDy7u.ChQjun97b.', 'customer'),
 (5, 'nnnnnn', 'dinhngan.jwe@gmail.com', '$2y$10$RXf/C5z5BPJSMq6QG.YI0OwxBqkaUujsjRqojT.bidt6sNeFPNA.O', 'customer'),
-(6, 'testuser1', 'testuser1@example.com', '$2y$10$Fx7Qb2HeFlkg0lrsgXNdXumdC.tnvgSZAxqaliejfvQnyq3Mfil2C', 'customer');
+(6, 'testuser1', 'testuser1@example.com', '$2y$10$Fx7Qb2HeFlkg0lrsgXNdXumdC.tnvgSZAxqaliejfvQnyq3Mfil2C', 'customer'),
+(7, 'Sun6pack', 'sun6pack@gmail.com', '$2y$10$7cNfR0EigXz/7BlHfMkrNOf9miDZ//OiGNoskcP6yRz63q7UjWmXW', 'customer');
 
 --
 -- Chỉ mục cho các bảng đã đổ
@@ -546,7 +562,7 @@ ALTER TABLE `amenities`
 -- AUTO_INCREMENT cho bảng `comparison_history`
 --
 ALTER TABLE `comparison_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT cho bảng `feed_comments`
@@ -558,7 +574,7 @@ ALTER TABLE `feed_comments`
 -- AUTO_INCREMENT cho bảng `feed_posts`
 --
 ALTER TABLE `feed_posts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT cho bảng `feed_post_images`
@@ -570,25 +586,25 @@ ALTER TABLE `feed_post_images`
 -- AUTO_INCREMENT cho bảng `hotels`
 --
 ALTER TABLE `hotels`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT cho bảng `hotel_images`
 --
 ALTER TABLE `hotel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT cho bảng `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT cho bảng `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Các ràng buộc cho các bảng đã đổ
