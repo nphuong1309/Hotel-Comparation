@@ -1,53 +1,81 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
-    exit;
-}
-require_once 'includes/db-connect.php';
-require_once 'includes/header.php';
+/** ADMIN.PHP: dashboard admin, hiển thị danh sách và xóa khách sạn an toàn. */
+require_once 'includes/bootstrap.php';
+require_admin();
 
 if (isset($_SESSION['flash_success'])) {
     $flashSuccess = $_SESSION['flash_success'];
     unset($_SESSION['flash_success']);
 }
 
-// Xử lý Xóa khách sạn
-if (isset($_GET['delete'])) {
-    $del_id = $_GET['delete'];
+// Xóa bằng POST để tránh bot, prefetch hoặc link ngoài vô tình kích hoạt thao tác.
+if (is_post_request() && isset($_POST['delete_hotel'])) {
+    require_csrf();
+    $hotelId = positive_int($_POST['hotel_id'] ?? null);
 
-    // 1. Quét và xóa toàn bộ ảnh vật lý của khách sạn này trong thư mục uploads/
-    $images_to_delete = glob("uploads/hotel_" . $del_id . "_*.*");
-    foreach ($images_to_delete as $img_file) {
-        if (is_file($img_file)) {
-            unlink($img_file);
-        }
+    if ($hotelId === null) {
+        $_SESSION['flash_error'] = 'ID khách sạn không hợp lệ.';
+        redirect('admin.php');
     }
 
-    // 2. Xóa dữ liệu trong Database
-    $stmt = $pdo->prepare("DELETE FROM hotels WHERE id = ?");
-    $stmt->execute([$del_id]);
-    echo "<script>alert('Đã xóa khách sạn và dọn dẹp thư mục ảnh thành công!'); window.location.href='admin.php';</script>";
+    $imageStmt = $pdo->prepare('SELECT image_url FROM hotel_images WHERE hotel_id = ?');
+    $imageStmt->execute([$hotelId]);
+    $imagePaths = $imageStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    try {
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare('DELETE FROM hotels WHERE id = ?');
+        $stmt->execute([$hotelId]);
+        $pdo->commit();
+
+        foreach (array_unique(array_merge(
+            $imagePaths,
+            glob("uploads/hotel_{$hotelId}_*.*") ?: []
+        )) as $imagePath) {
+            delete_upload_file($imagePath);
+        }
+
+        $_SESSION['flash_success'] = $stmt->rowCount() > 0
+            ? 'Đã xóa khách sạn và các dữ liệu liên quan.'
+            : 'Khách sạn không còn tồn tại.';
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('Hotel deletion failed: ' . $exception->getMessage());
+        $_SESSION['flash_error'] = 'Không thể xóa khách sạn lúc này.';
+    }
+
+    redirect('admin.php');
 }
 
 // Lấy danh sách
 $stmt = $pdo->query("SELECT * FROM hotels ORDER BY id ASC");
 $hotels = $stmt->fetchAll();
+
+$flashError = $_SESSION['flash_error'] ?? null;
+unset($_SESSION['flash_error']);
+
+require_once 'includes/header.php';
 ?>
 
 <?php if (!empty($flashSuccess)): ?>
-    <div style="margin: 20px 0; padding: 12px 15px; border-radius: 6px; background:#e8f7ee; color:#1f6b3b; border:1px solid #b7e2c7;">
-        <div style="margin-bottom: 10px;">
+    <div class="alert alert-success admin-flash">
+        <div class="admin-flash-message">
             <?= htmlspecialchars($flashSuccess) ?>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="index.php" class="btn-primary" style="text-decoration:none; display:inline-block;">Về trang chủ</a>
-            <a href="adminadd.php" class="btn-outline" style="text-decoration:none; display:inline-block;">Thêm khách sạn mới</a>
+        <div class="admin-flash-actions">
+            <a href="index.php" class="btn-primary admin-button-link">Về trang chủ</a>
+            <a href="adminadd.php" class="btn-outline admin-button-link">Thêm khách sạn mới</a>
         </div>
     </div>
 <?php endif; ?>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+<?php if (!empty($flashError)): ?>
+    <div class="alert alert-error"><?= e($flashError) ?></div>
+<?php endif; ?>
+
+<div class="admin-page-heading">
     <h2>Bảng Điều Khiển Admin (Quản lý Khách sạn)</h2>
     <a href="adminadd.php" class="btn-primary">+ Thêm Khách Sạn Mới</a>
 </div>
@@ -69,7 +97,11 @@ $hotels = $stmt->fetchAll();
             <td>
                 <!-- Nút sửa (có thể phát triển sau) và nút Xóa -->
                 <a href="edit_hotel.php?id=<?= $h['id'] ?>" class="btn-outline">Sửa</a>
-                <a href="?delete=<?= $h['id'] ?>" class="btn-outline" style="color:red; border-color:red;" onclick="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">Xóa</a>
+                <form method="POST" class="inline-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="hotel_id" value="<?= (int) $h['id'] ?>">
+                    <button type="submit" name="delete_hotel" class="btn-outline btn-danger">Xóa</button>
+                </form>
             </td>
         </tr>
     <?php endforeach; ?>

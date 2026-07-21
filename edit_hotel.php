@@ -1,13 +1,13 @@
 <?php
-session_start();
-// Mở khóa dòng check quyền nếu cần thiết
-// if(!isset($_SESSION['admin'])) { header("Location: login.php"); exit; }
-require_once 'includes/db-connect.php';
+/** EDIT_HOTEL.PHP: form admin cập nhật khách sạn hiện có và thêm ảnh mới. */
+require_once 'includes/bootstrap.php';
+require_admin();
 
-if (!isset($_GET['id'])) {
-    die("Thiếu ID khách sạn.");
+$id = positive_int($_GET['id'] ?? null);
+if ($id === null) {
+    http_response_code(400);
+    exit('ID khách sạn không hợp lệ.');
 }
-$id = (int)$_GET['id'];
 
 $msg = '';
 $msg_type = '';
@@ -17,18 +17,23 @@ $amenityStmt = $pdo->query('SELECT id, name FROM amenities ORDER BY id ASC');
 $amenitiesList = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Xử lý khi bấm Lưu
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name        = trim($_POST['name']);
-    $vibe        = trim($_POST['vibe']);
-    $price_2     = (int)$_POST['price_2'];
-    $price_4     = (int)$_POST['price_4'];
-    $address     = trim($_POST['address']);
-    $phone       = trim($_POST['phone']);
-    $stars       = (float)$_POST['stars'];
-    $description = trim($_POST['description']);
+if (is_post_request()) {
+    require_csrf();
+    $name        = trim((string) ($_POST['name'] ?? ''));
+    $vibe        = trim((string) ($_POST['vibe'] ?? ''));
+    $price_2     = positive_int($_POST['price_2'] ?? null) ?? 0;
+    $price_4     = positive_int($_POST['price_4'] ?? null) ?? 0;
+    $address     = trim((string) ($_POST['address'] ?? ''));
+    $phone       = trim((string) ($_POST['phone'] ?? ''));
+    $stars       = filter_var($_POST['stars'] ?? null, FILTER_VALIDATE_FLOAT);
+    $description = trim((string) ($_POST['description'] ?? ''));
     
     // Mảng chứa các ID tiện ích được Admin tick chọn
-    $selected_amenities = isset($_POST['amenities']) ? $_POST['amenities'] : [];
+    $allowedAmenityIds = array_map('intval', array_column($amenitiesList, 'id'));
+    $selected_amenities = array_values(array_intersect(
+        array_unique(array_map('intval', (array) ($_POST['amenities'] ?? []))),
+        $allowedAmenityIds
+    ));
 
     if (empty($name)) {
         $msg = "Tên không được bỏ trống!";
@@ -36,13 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (empty($address)) {
         $msg = "Địa chỉ không được bỏ trống!";
         $msg_type = "error";
+    } elseif ($vibe === '') {
+        $msg = "Phong cách không được bỏ trống!";
+        $msg_type = "error";
     } elseif ($price_2 <= 0 || $price_4 <= 0) {
         $msg = "Giá phòng phải là số dương!";
         $msg_type = "error";
-    } elseif ($stars < 1 || $stars > 5) {
+    } elseif ($stars === false || $stars < 1 || $stars > 5) {
         $msg = "Số sao không hợp lệ (chỉ từ 1 đến 5 sao)!";
         $msg_type = "error";
     } else {
+        $savedImages = [];
         try {
             $pdo->beginTransaction();
 
@@ -59,9 +68,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$name, $vibe, $address, $phone, $stars, $description, $id]);
 
             // 2. Cập nhật giá phòng (capacity 2 và 4)
-            $stmt_room = $pdo->prepare("UPDATE rooms SET price = ? WHERE hotel_id = ? AND capacity = ?");
-            $stmt_room->execute([$price_2, $id, 2]);
-            $stmt_room->execute([$price_4, $id, 4]);
+            $stmt_room = $pdo->prepare(
+                "INSERT INTO rooms (hotel_id, capacity, price) VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE price = VALUES(price)"
+            );
+            $stmt_room->execute([$id, 2, $price_2]);
+            $stmt_room->execute([$id, 4, $price_4]);
 
             // 3. Cập nhật bảng hotel_amenities
             // Xóa toàn bộ tiện ích cũ của khách sạn này
@@ -75,60 +87,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // 4. Thêm ảnh mới nếu có upload
-            if (isset($_FILES['images']) && !empty($_FILES['images']['tmp_name'][0])) {
-                $upload_dir = 'uploads/';
-                if (!is_dir($upload_dir)) {
-                    mkdir($upload_dir, 0755, true);
-                }
-
-                $stmt_img = $pdo->prepare("INSERT INTO hotel_images (hotel_id, image_url, is_primary) VALUES (?, ?, 0)");
-                $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-
-                foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
-                    if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
-                        $file_name = $_FILES['images']['name'][$key];
-                        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-
-                        if (!in_array($file_ext, $allowed_extensions)) {
-                            throw new Exception("Chỉ chấp nhận các định dạng ảnh: " . implode(', ', $allowed_extensions));
-                        }
-
-                        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                        $mime_type = finfo_file($finfo, $tmp_name);
-                        finfo_close($finfo);
-                        if (strpos($mime_type, 'image/') !== 0) {
-                            throw new Exception("File tải lên không phải là ảnh hợp lệ!");
-                        }
-
-                        // Sử dụng logic tạo tên file an toàn của bạn
-                        $new_file_name = time() . '_' . bin2hex(random_bytes(4)) . '.' . $file_ext;
-                        $target = $upload_dir . $new_file_name;
-
-                        if (move_uploaded_file($tmp_name, $target)) {
-                            $stmt_img->execute([$id, $target]);
-                        }
-                    }
+            if (isset($_FILES['images'])) {
+                $savedImages = store_uploaded_images($_FILES['images'], "hotel_{$id}", 10);
+                $stmt_img = $pdo->prepare('INSERT INTO hotel_images (hotel_id, image_url, is_primary) VALUES (?, ?, 0)');
+                foreach ($savedImages as $imagePath) {
+                    $stmt_img->execute([$id, $imagePath]);
                 }
             }
 
             $pdo->commit();
 
-            // Redirect để tránh resubmit form khi F5
-            header("Location: edit_hotel.php?id={$id}&status=success");
-            exit;
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            $msg = "Lỗi: " . $e->getMessage();
+            $_SESSION['flash_success'] = 'Cập nhật thành công!';
+            redirect("edit_hotel.php?id={$id}");
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            foreach ($savedImages as $imagePath) {
+                delete_upload_file($imagePath);
+            }
+            error_log('Hotel update failed: ' . $e->getMessage());
+            $msg = $e instanceof RuntimeException ? $e->getMessage() : 'Không thể cập nhật khách sạn lúc này.';
             $msg_type = "error";
         }
     }
 }
 
-// Kiểm tra trạng thái thành công sau Redirect
-if (isset($_GET['status']) && $_GET['status'] === 'success') {
-    $msg = "Cập nhật thành công!";
+if (isset($_SESSION['flash_success'])) {
+    $msg = (string) $_SESSION['flash_success'];
     $msg_type = "success";
+    unset($_SESSION['flash_success']);
 }
 
 // Lấy dữ liệu hiện tại từ Database để đưa vào form
@@ -156,87 +144,60 @@ $stmt_current_amenities = $pdo->prepare("SELECT amenity_id FROM hotel_amenities 
 $stmt_current_amenities->execute([$id]);
 $current_amenities = $stmt_current_amenities->fetchAll(PDO::FETCH_COLUMN);
 
+if (is_post_request() && $msg_type === 'error') {
+    $hotel = array_merge($hotel, [
+        'name' => $name,
+        'address' => $address,
+        'phone' => $phone,
+        'star_rating' => $stars === false ? $hotel['star_rating'] : $stars,
+        'vibe' => $vibe,
+        'description' => $description,
+    ]);
+    $current_amenities = $selected_amenities;
+}
+
 require_once 'includes/header.php';
 ?>
-
-<style>
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-    .form-control { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    textarea.form-control { resize: vertical; min-height: 80px; }
-    
-    /* CSS cho khu vực chọn tiện ích */
-    .amenities-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 10px;
-        background: #fff;
-        padding: 15px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        max-height: 250px;
-        overflow-y: auto;
-    }
-    .amenity-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        font-weight: normal !important;
-    }
-    .amenity-checkbox input {
-        accent-color: #df6040;
-        width: 16px;
-        height: 16px;
-    }
-</style>
-
-<div class="container" style="max-width: 800px; margin: 30px auto; background: #fffdf8; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-    <h2 style="color: var(--primary); margin-top: 0;">Sửa Khách Sạn: <?= htmlspecialchars($hotel['name']) ?></h2>
+<div class="container hotel-admin-form">
+    <h2 class="hotel-admin-form__title">Sửa Khách Sạn: <?= htmlspecialchars($hotel['name']) ?></h2>
 
     <?php if (!empty($msg)): ?>
-        <div style="margin: 15px 0; padding: 12px 15px; border-radius: 6px; <?= $msg_type === 'success' ? 'background:#e8f7ee; color:#1f6b3b; border:1px solid #b7e2c7;' : 'background:#fdecec; color:#a11f1f; border:1px solid #f2bbbb;' ?>">
+        <div class="hotel-admin-form__notice <?= $msg_type === 'success' ? 'hotel-admin-form__notice--success' : 'hotel-admin-form__notice--error' ?>">
             <?= htmlspecialchars($msg) ?>
         </div>
         <?php if ($msg_type === 'success'): ?>
-            <div style="margin-bottom: 18px; display:flex; gap:10px; flex-wrap:wrap;">
-                <a href="admin.php" class="btn-primary" style="text-decoration:none;">Về trang quản trị</a>
-                <a href="index.php" class="btn-outline" style="text-decoration:none;">Về trang chủ</a>
+            <div class="hotel-admin-form__notice-actions">
+                <a href="admin.php" class="btn-primary hotel-admin-form__link">Về trang quản trị</a>
+                <a href="index.php" class="btn-outline hotel-admin-form__link">Về trang chủ</a>
             </div>
         <?php endif; ?>
     <?php endif; ?>
 
     <form action="" method="POST" enctype="multipart/form-data">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Tên khách sạn:</label>
-            <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($hotel['name']) ?>" required>
+            <input type="text" name="name" class="form-control" maxlength="150" value="<?= e($hotel['name']) ?>" required>
         </div>
 
         <div class="form-group">
             <label>Địa chỉ:</label>
-            <input type="text" name="address" class="form-control" value="<?= htmlspecialchars($hotel['address'] ?? '') ?>" required>
+            <input type="text" name="address" class="form-control" maxlength="255" value="<?= e($hotel['address'] ?? '') ?>" required>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="hotel-admin-form__two-columns">
             <div class="form-group">
                 <label>Số điện thoại:</label>
-                <input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($hotel['phone'] ?? '') ?>" placeholder="Ví dụ: 0901234567">
+                <input type="tel" name="phone" class="form-control" maxlength="25" value="<?= e($hotel['phone'] ?? '') ?>" placeholder="Ví dụ: 0901234567">
             </div>
             
             <div class="form-group">
                 <label>Số sao:</label>
-                <select name="stars" class="form-control" required>
-                    <?php
-                    $current_stars = (int)($hotel['star_rating'] ?? 1);
-                    for ($i = 1; $i <= 5; $i++):
-                    ?>
-                        <option value="<?= $i ?>" <?= $current_stars === $i ? 'selected' : '' ?>><?= $i ?> Sao</option>
-                    <?php endfor; ?>
-                </select>
+                <input type="number" name="stars" class="form-control" min="1" max="5" step="0.5" value="<?= e($hotel['star_rating'] ?? 1) ?>" required>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="hotel-admin-form__two-columns">
             <div class="form-group">
                 <label>Giá phòng 2 người (VNĐ):</label>
                 <input type="number" name="price_2" class="form-control" value="<?= $price_2 ?>" min="1" required>
@@ -271,19 +232,19 @@ require_once 'includes/header.php';
                         </label>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <p style="color: #777; font-size: 14px;">Chưa có tiện ích nào trong cơ sở dữ liệu.</p>
+                    <p class="hotel-admin-form__empty">Chưa có tiện ích nào trong cơ sở dữ liệu.</p>
                 <?php endif; ?>
             </div>
         </div>
 
         <div class="form-group">
             <label>Ảnh hiện có:</label>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:5px;">
+            <div class="hotel-admin-form__existing-images">
                 <?php if (empty($images)): ?>
-                    <p style="color: #666; font-style: italic;">Chưa có ảnh nào.</p>
+                    <p class="hotel-admin-form__image-empty">Chưa có ảnh nào.</p>
                 <?php else: ?>
                     <?php foreach ($images as $img): ?>
-                        <img src="<?= htmlspecialchars($img) ?>" width="100" height="100" style="object-fit:cover; border-radius:5px; border: 1px solid #ddd;">
+                        <img src="<?= htmlspecialchars($img) ?>" width="100" height="100" class="hotel-admin-form__image" alt="Ảnh khách sạn hiện có">
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
@@ -294,9 +255,9 @@ require_once 'includes/header.php';
             <input type="file" name="images[]" multiple accept="image/*" class="form-control">
         </div>
 
-        <div style="margin-top: 25px;">
+        <div class="hotel-admin-form__footer-actions">
             <button type="submit" class="btn-primary">Lưu thay đổi</button>
-            <a href="admin.php" class="btn-outline" style="text-decoration:none; display:inline-block; margin-left:10px;">Hủy</a>
+            <a href="admin.php" class="btn-outline hotel-admin-form__cancel">Hủy</a>
         </div>
     </form>
 </div>

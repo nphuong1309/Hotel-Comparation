@@ -483,6 +483,7 @@ ALTER TABLE `amenities`
 --
 ALTER TABLE `comparison_history`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_comparison_user_hotels` (`user_id`,`hotel_ids`),
   ADD KEY `user_id` (`user_id`);
 
 --
@@ -539,6 +540,7 @@ ALTER TABLE `hotel_images`
 --
 ALTER TABLE `rooms`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_rooms_hotel_capacity` (`hotel_id`,`capacity`),
   ADD KEY `hotel_id` (`hotel_id`);
 
 --
@@ -546,6 +548,7 @@ ALTER TABLE `rooms`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_users_username` (`username`),
   ADD UNIQUE KEY `uq_users_email` (`email`);
 
 --

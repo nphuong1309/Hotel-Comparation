@@ -1,10 +1,7 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
-require_once 'includes/db-connect.php';
+/** PROFILE.PHP: lịch sử so sánh và các bài cộng đồng của người dùng đăng nhập. */
+require_once 'includes/bootstrap.php';
+require_login();
 require_once 'includes/header.php';
 
 $user_id = $_SESSION['user_id'];
@@ -64,61 +61,61 @@ if (!empty($my_post_ids)) {
 }
 ?>
 
-<div style="max-width: 700px; margin: 30px auto;">
+<div class="profile-page">
     <h2>Tài khoản của tôi</h2>
-    <p style="color:#666; margin-bottom:25px;">Xin chào, <b><?= htmlspecialchars($_SESSION['username']) ?></b></p>
+    <p class="profile-greeting">Xin chào, <b><?= htmlspecialchars($_SESSION['username']) ?></b></p>
 
-    <section style="margin-bottom:30px;">
-        <h3 style="margin-bottom:15px;">🔍 Lịch sử so sánh</h3>
+    <section class="profile-section">
+        <h3>🔍 Lịch sử so sánh</h3>
         <?php if (count($history) > 0): ?>
             <?php foreach ($history as $h):
                 $ids = array_filter(explode(',', $h['hotel_ids']));
                 $names = array_map(fn($id) => $hotel_names[$id] ?? "KS #$id", $ids);
             ?>
-                <div style="background:#fff; padding:15px 20px; border-radius:8px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div class="profile-card">
+                    <div class="profile-card-row">
                         <span><?= htmlspecialchars(implode(', ', $names)) ?></span>
-                        <a href="compare.php?<?= http_build_query(['hotel_ids' => $ids]) ?>" class="btn-outline" style="white-space:nowrap;">Xem lại</a>
+                        <a href="compare.php?<?= http_build_query(['hotel_ids' => $ids]) ?>" class="btn-outline profile-nowrap">Xem lại</a>
                     </div>
-                    <div style="font-size:12px; color:#999; margin-top:6px;">
+                    <div class="profile-meta">
                         <?= date('d/m/Y H:i', strtotime($h['created_at'])) ?>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p style="color:#999;">Bạn chưa so sánh khách sạn nào. <a href="index.php">Khám phá ngay &raquo;</a></p>
+            <p class="profile-empty">Bạn chưa so sánh khách sạn nào. <a href="index.php">Khám phá ngay &raquo;</a></p>
         <?php endif; ?>
     </section>
 
     <section>
-        <h3 style="margin-bottom:15px;">📝 Bài đăng của tôi trong Cộng đồng</h3>
+        <h3>📝 Bài đăng của tôi trong Cộng đồng</h3>
         <?php if (count($my_posts) > 0): ?>
             <?php foreach ($my_posts as $post): ?>
                 <?php $post_imgs = $my_post_images[$post['id']] ?? []; ?>
-                <div style="background:#fff; padding:15px 20px; border-radius:8px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                <div class="profile-card">
                     <?php if (!empty($post_imgs)): ?>
-                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                        <div class="profile-image-grid">
                             <?php foreach (array_slice($post_imgs, 0, 4) as $idx => $pimg): ?>
                                 <?php if ($idx === 3 && count($post_imgs) > 4): ?>
-                                    <div style="position:relative; width:72px; height:72px; border-radius:6px; overflow:hidden;">
-                                        <img src="<?= htmlspecialchars($pimg) ?>" style="width:100%; height:100%; object-fit:cover;">
-                                        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; font-weight:bold;">+<?= count($post_imgs) - 3 ?></div>
+                                    <div class="profile-image-more">
+                                        <img src="<?= htmlspecialchars($pimg) ?>" class="profile-thumbnail" alt="Ảnh bài đăng">
+                                        <div class="profile-image-overlay">+<?= count($post_imgs) - 3 ?></div>
                                     </div>
                                 <?php else: ?>
-                                    <img src="<?= htmlspecialchars($pimg) ?>" style="width:72px; height:72px; object-fit:cover; border-radius:6px;">
+                                    <img src="<?= htmlspecialchars($pimg) ?>" class="profile-thumbnail" alt="Ảnh bài đăng">
                                 <?php endif; ?>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
-                    <p style="margin-bottom:8px;"><?= nl2br(htmlspecialchars($post['content'])) ?></p>
-                    <div style="font-size:12px; color:#999; display:flex; justify-content:space-between;">
+                    <p class="profile-post-content"><?= nl2br(htmlspecialchars($post['content'])) ?></p>
+                    <div class="profile-card-row profile-meta">
                         <span><?= date('d/m/Y H:i', strtotime($post['created_at'])) ?></span>
                         <span>❤️ <?= $post['likes_count'] ?> lượt thích</span>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p style="color:#999;">Bạn chưa có bài đăng nào. <a href="community.php">Chia sẻ trải nghiệm ngay &raquo;</a></p>
+            <p class="profile-empty">Bạn chưa có bài đăng nào. <a href="community.php">Chia sẻ trải nghiệm ngay &raquo;</a></p>
         <?php endif; ?>
     </section>
 </div>
