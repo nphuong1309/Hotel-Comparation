@@ -11,7 +11,7 @@ return [
         'password' => getenv('HOTELTOOL_DB_PASSWORD') ?: '',
     ],
     'gemini_api_key' => getenv('HOTELTOOL_GEMINI_API_KEY') ?: '',
-    'serpapi_key'    => $_SERVER['HOTELTOOL_SERPAPI_KEY'] ?? getenv('HOTELTOOL_SERPAPI_KEY') ?: '',
+    'serpapi_key' => $_ENV['HOTELTOOL_SERPAPI_KEY'] ?? getenv('HOTELTOOL_SERPAPI_KEY') ?: '39615811bbe4b8c4268777d9a7ba01ef3ea9a54d9c24900375fc6a5ded064425',
     'uploads' => [
         'directory' => dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads',
         'public_prefix' => 'uploads/',
