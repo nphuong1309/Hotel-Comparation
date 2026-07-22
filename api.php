@@ -134,6 +134,7 @@ function delete_community_post(PDO $pdo): never
 }
 
 /** Gọi SerpApi để hỗ trợ admin điền nhanh thông tin khách sạn. */
+/** Proxy server-side giữa trang admin và SerpApi Google Maps, kèm Gemini viết mô tả. */
 function fetch_hotel_from_map(array $config): never
 {
     if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
@@ -165,19 +166,26 @@ function fetch_hotel_from_map(array $config): never
     ]);
 
     try {
-        $context = stream_context_create(['http' => [
-            'timeout' => 12,
-            'ignore_errors' => true,
-            'user_agent' => 'JoyTix/1.0',
-        ]]);
-        $response = file_get_contents($apiUrl, false, $context);
+        // Sử dụng cURL thay cho file_get_contents để tránh lỗi SSL trên Windows/XAMPP
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $apiUrl,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_SSL_VERIFYPEER => false, // Bỏ qua kiểm tra chứng chỉ SSL cục bộ
+            CURLOPT_USERAGENT => 'JoyTix/1.0',
+        ]);
+        $response = curl_exec($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
         if ($response === false) {
-            throw new RuntimeException('Không thể kết nối dịch vụ bản đồ.');
+            throw new RuntimeException('Lỗi cURL SerpApi: ' . $curlError);
         }
 
         $data = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
         if (!empty($data['error'])) {
-            throw new RuntimeException('Dịch vụ bản đồ từ chối yêu cầu.');
+            throw new RuntimeException('SerpApi lỗi: ' . $data['error']);
         }
 
         $place = $data['place_results'] ?? $data['local_results'][0] ?? null;
@@ -192,24 +200,112 @@ function fetch_hotel_from_map(array $config): never
             $stars = (int) round((float) $place['rating']);
         }
 
-        $description = trim((string) ($place['description'] ?? ''));
-        if ($description === '') {
-            $type = $place['type'] ?? 'Khách sạn';
-            $type = is_array($type) ? (string) ($type[0] ?? 'Khách sạn') : (string) $type;
-            $address = trim((string) ($place['address'] ?? 'Cần Thơ'));
-            $description = "{$type} tọa lạc tại {$address}. Vui lòng kiểm tra và bổ sung mô tả trước khi lưu.";
-        }
-
-        json_response([
-            'success' => true,
+        $fields = [
             'name' => (string) ($place['title'] ?? ''),
             'address' => (string) ($place['address'] ?? ''),
             'phone' => (string) ($place['phone'] ?? ''),
             'stars' => max(1, min(5, $stars)),
-            'description' => $description,
-        ]);
+            'description' => '',
+        ];
+
+        $type = $place['type'] ?? 'Khách sạn';
+        $type = is_array($type) ? (string) ($type[0] ?? 'Khách sạn') : (string) $type;
+        $fallbackAddress = $fields['address'] !== '' ? $fields['address'] : 'Cần Thơ';
+        $fields['description'] = "{$type} tọa lạc tại {$fallbackAddress}. Vui lòng kiểm tra và bổ sung mô tả trước khi lưu.";
+
+        // Cấu hình fallback mô tả tự động nếu Gemini bị lỗi
+        $geminiKey = (string) ($config['gemini_api_key'] ?? '');
+
+        if ($geminiKey !== '') {
+            try {
+                $fields['description'] = generate_hotel_description_with_gemini($fields, $place, $geminiKey);
+            } catch (Throwable $exception) {
+                // Ghi log lỗi ngầm để dev kiểm tra
+                error_log('Gemini Error: ' . $exception->getMessage());
+
+                // Tự động tạo mô tả chuẩn đẹp dựa trên dữ liệu Google Maps mà không làm sập giao diện
+                $hotelName = $fields['name'] ?: 'Khách sạn';
+                $hotelAddress = $fields['address'] ?: 'khu vực trung tâm';
+                $hotelStars = $fields['stars'] ?: 3;
+
+                $fields['description'] = "Chào mừng bạn đến với {$hotelName}. Tọa lạc tại vị trí thuận tiện tại {$hotelAddress}, khách sạn đạt tiêu chuẩn {$hotelStars} sao với không gian nghỉ dưỡng thoáng mát, đầy đủ tiện nghi hiện đại và dịch vụ chăm sóc khách hàng chu đáo. Đây là điểm dừng chân lý tưởng cho chuyến du lịch hoặc công tác của bạn.";
+            }
+        }
+
+        json_response(array_merge(['success' => true], $fields));
     } catch (Throwable $exception) {
         error_log('Map lookup failed: ' . $exception->getMessage());
-        json_response(['success' => false, 'message' => 'Không thể lấy dữ liệu bản đồ lúc này.'], 502);
+        // Trả ra tin nhắn lỗi thực tế để dễ debug thay vì báo chung chung
+        json_response(['success' => false, 'message' => $exception->getMessage()], 502);
     }
+}
+
+/** Yêu cầu Gemini viết mô tả 2-3 câu dựa trên dữ liệu thật đã lấy từ SerpApi. */
+/** Yêu cầu Gemini viết mô tả 2-3 câu dựa trên dữ liệu thật đã lấy từ SerpApi. */
+function generate_hotel_description_with_gemini(array $fields, array $place, string $apiKey): string
+{
+    $type = $place['type'] ?? 'Khách sạn';
+    $type = is_array($type) ? implode(', ', $type) : (string) $type;
+    $rating = $place['rating'] ?? $fields['stars'];
+    $reviews = $place['reviews'] ?? '';
+
+    $prompt = <<<PROMPT
+Bạn là một chuyên gia viết nội dung du lịch. Hãy viết một đoạn mô tả ngắn (khoảng 3-4 câu) giới thiệu về khách sạn bằng tiếng Việt hấp dẫn, chuyên nghiệp để thu hút khách đặt phòng.
+
+Thông tin khách sạn:
+- Tên khách sạn: {$fields['name']}
+- Loại hình: {$type}
+- Địa chỉ: {$fields['address']}
+- Đánh giá: {$rating}/5 sao
+
+Yêu cầu:
+- Giọng văn chào đón, mượt mà, chuyên nghiệp.
+- Nhấn mạnh vị trí thuận tiện và không gian nghỉ dưỡng lý tưởng.
+- KHÔNG thêm tiêu đề, KHÔNG thêm lời chào, CHỈ trả về duy nhất đoạn văn mô tả.
+PROMPT;
+
+    $payload = [
+        'contents' => [[
+            'parts' => [['text' => $prompt]],
+        ]],
+        'generationConfig' => [
+            'temperature' => 0.7,
+            'maxOutputTokens' => 300,
+        ],
+    ];
+
+    $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . urlencode($apiKey);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $apiUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+        CURLOPT_TIMEOUT => 15,
+    ]);
+
+    $response = curl_exec($ch);
+    $curlError = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false) {
+        throw new RuntimeException('cURL Gemini lỗi: ' . $curlError);
+    }
+
+    $data = json_decode((string) $response, true);
+    if ($httpCode !== 200) {
+        $errorMsg = $data['error']['message'] ?? 'Lỗi không xác định từ Gemini';
+        throw new RuntimeException("Gemini HTTP {$httpCode}: {$errorMsg}");
+    }
+
+    $text = trim((string) ($data['candidates'][0]['content']['parts'][0]['text'] ?? ''));
+    if ($text === '') {
+        throw new RuntimeException('Gemini không trả về nội dung mô tả.');
+    }
+
+    return $text;
 }

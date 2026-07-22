@@ -10,7 +10,8 @@ return [
         'user' => getenv('HOTELTOOL_DB_USER') ?: 'root',
         'password' => getenv('HOTELTOOL_DB_PASSWORD') ?: '',
     ],
-    'serpapi_key' => getenv('HOTELTOOL_SERPAPI_KEY') ?: '',
+    'gemini_api_key' => getenv('HOTELTOOL_GEMINI_API_KEY') ?: '',
+    'serpapi_key'    => $_SERVER['HOTELTOOL_SERPAPI_KEY'] ?? getenv('HOTELTOOL_SERPAPI_KEY') ?: '',
     'uploads' => [
         'directory' => dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads',
         'public_prefix' => 'uploads/',
