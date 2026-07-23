@@ -140,6 +140,135 @@ unset($hotelResult);
 
 require_once 'includes/header.php';
 ?>
+<style>
+/* Chỉ áp dụng cho phần kết quả tìm kiếm trong search.php. */
+.search-results-section {
+    margin-top: 38px;
+}
+
+.search-results-section > h2 {
+    margin: 0 0 28px;
+    color: #4b2342 !important;
+    font-size: clamp(30px, 3.2vw, 42px);
+    line-height: 1.2;
+}
+
+.search-results-section .search-criteria-summary {
+    margin-bottom: 34px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-left: 8px solid #542548;
+    border-radius: 14px 0 0 14px;
+    background: #fff;
+    color: #555;
+    box-shadow: none;
+}
+
+.search-results-section .search-main-criteria {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 27px 38px 25px;
+    border-bottom: 1px solid #eadfd8;
+    font-size: 18px;
+    line-height: 1.55;
+}
+
+.search-results-section .search-main-criteria strong {
+    margin-left: 9px;
+    color: #444;
+    font-weight: 700;
+}
+
+.search-results-section .criteria-separator {
+    margin: 0 22px;
+    color: #baadb7;
+}
+
+.search-results-section .selected-amenities-section {
+    padding: 29px 38px 34px;
+}
+
+.search-results-section .selected-amenities-title {
+    margin-bottom: 24px;
+    color: #262626;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.search-results-section .selected-amenities-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 88px;
+    row-gap: 20px;
+}
+
+.search-results-section .selected-amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    color: #333;
+    font-size: 18px;
+    line-height: 1.45;
+}
+
+.search-results-section .selected-amenity-icon {
+    width: 22px !important;
+    height: 22px !important;
+    flex: 0 0 22px;
+    display: block;
+    fill: none !important;
+    stroke: #555 !important;
+    stroke-width: 1.7 !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.search-results-section .selected-amenity-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.search-results-section .no-selected-amenity {
+    margin: 0;
+    padding: 28px 38px 32px;
+    color: #777;
+}
+
+@media (max-width: 700px) {
+    .search-results-section > h2 {
+        margin-bottom: 22px;
+        font-size: 31px;
+    }
+
+    .search-results-section .search-main-criteria {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 22px 24px;
+    }
+
+    .search-results-section .search-main-criteria strong {
+        margin: 2px 0 9px;
+    }
+
+    .search-results-section .criteria-separator {
+        display: none;
+    }
+
+    .search-results-section .selected-amenities-section {
+        padding: 24px;
+    }
+
+    .search-results-section .selected-amenities-list {
+        grid-template-columns: 1fr;
+        row-gap: 16px;
+    }
+}
+</style>
 <section class="hotel-list-section search-results-section">
     <h2>Kết quả gợi ý phù hợp nhất</h2>
 

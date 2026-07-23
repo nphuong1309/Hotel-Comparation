@@ -1,15 +1,8 @@
-﻿/* =========================================================
-   DESIGN TOKENS â€“ biáº¿n mÃ u vÃ  font dÃ¹ng chung toÃ n site.
-   Ghi chÃº: header.php cÅ©ng khai bÃ¡o :root Ä‘á»ƒ thÃªm --site-*
-   vÃ  --font-*. Hai bá»™ biáº¿n bá»• sung nhau, khÃ´ng xung Ä‘á»™t.
-   --primary á»Ÿ Ä‘Ã¢y Ä‘á»“ng bá»™ vá»›i --site-primary trong header.php
-   (Ä‘á»u lÃ  #dda975 â€“ vÃ ng cÃ¡t).
-   ========================================================= */
-:root {
+﻿:root {
     --primary: #dda975;
-    /* vÃ ng cÃ¡t â€“ khá»›p vá»›i header.php */
+    /* vÃ ng cÃ¡t â€“ khá»›p vá»›i header.php */
     --primary-dark: #c58b56;
-    /* vÃ ng cÃ¡t Ä‘áº­m */
+    /* vÃ ng cÃ¡t Ä‘áº­m */
     --bg-color: #fef4e8;
     /* ná»n kem â€“ khá»›p vá»›i header.php */
     --text-color: #191919;
@@ -25,7 +18,7 @@
     box-sizing: border-box;
 }
 
-/* body baseline Ä‘Æ°á»£c header.php kiá»ƒm soÃ¡t hoÃ n toÃ n (sticky
+/* body baseline Ä‘Æ°á»£c header.php kiá»ƒm soÃ¡t hoÃ n toÃ n (sticky
    navbar, flex-column layout, padding-bottom cho compare-dock).
    á»ž Ä‘Ã¢y chá»‰ giá»¯ margin: 0 Ä‘á»ƒ trÃ¡nh double-margin vá»›i html. */
 body {
@@ -93,7 +86,7 @@ body {
     color: var(--primary);
 }
 
-/* MÃ u tráº¯ng cho táº¥t cáº£ text trong nav (header.php cÅ©ng cÃ³ rule nÃ y) */
+/* MÃ u tráº¯ng cho táº¥t cáº£ text trong nav (header.php cÅ©ng cÃ³ rule nÃ y) */
 .nav-content nav a,
 .nav-content nav span,
 .nav-content nav b,
@@ -104,7 +97,7 @@ body {
 /* =========================================================
    BUTTONS  (style chi tiáº¿t + override náº±m trong header.php)
    Äá»‹nh nghÄ©a ná»n Ä‘á»ƒ cÃ¡c trang khÃ´ng dÃ¹ng header.php váº«n cÃ³
-   styling cÆ¡ báº£n. MÃ u Ä‘á»“ng bá»™ vá»›i identity vÃ ng cÃ¡t.
+   styling cÆ¡ báº£n. MÃ u Ä‘á»“ng bá»™ vá»›i identity vÃ ng cÃ¡t.
    ========================================================= */
 .btn-primary {
     background: var(--primary);
@@ -257,9 +250,9 @@ body {
 
 /* =========================================================
    COMPARE DOCK  (thanh so sÃ¡nh cá»‘ Ä‘á»‹nh dÆ°á»›i cÃ¹ng)
-   Style gá»‘c táº¡i Ä‘Ã¢y â€“ index.php ghi Ä‘Ã¨ mÃ u vÃ  border qua
+   Style gá»‘c táº¡i Ä‘Ã¢y â€“ index.php ghi Ä‘Ã¨ mÃ u vÃ  border qua
    #compareDock.compare-dock (specificity cao hÆ¡n).
-   CÃ¡ch áº©n dÃ¹ng display:none Ä‘á»ƒ Ä‘á»“ng bá»™ vá»›i JS vÃ  index.php.
+   CÃ¡ch áº©n dÃ¹ng display:none Ä‘á»ƒ Ä‘á»“ng bá»™ vá»›i JS vÃ  index.php.
    ========================================================= */
 .compare-dock {
     position: fixed;
@@ -349,8 +342,8 @@ body {
 /* =========================================================
    THANH NGÃ‚N SÃCH (#budgetRange)
    Style Ä‘Æ¡n giáº£n cho trang khÃ¡c náº¿u cáº§n. Trang chá»§ (index.php)
-   override toÃ n bá»™ báº±ng <style> block riÃªng vá»›i appearance:none
-   nÃªn block nÃ y chá»‰ lÃ  fallback cho cÃ¡c context khÃ¡c.
+   override toÃ n bá»™ báº±ng <style> block riÃªng vá»›i appearance:none
+   nÃªn block nÃ y chá»‰ lÃ  fallback cho cÃ¡c context khÃ¡c.
    ========================================================= */
 #budgetRange {
     width: 100%;
@@ -588,7 +581,7 @@ body {
     }
 }
 
-/* Tráº¡ng thÃ¡i vÃ  thao tÃ¡c dÃ¹ng chung */
+/* Tráº¡ng thÃ¡i vÃ  thao tÃ¡c dÃ¹ng chung */
 .alert {
     margin: 16px 0;
     padding: 12px 15px;
@@ -684,7 +677,7 @@ body {
 }
 
 /* ======================================================================
-   PROFILE.PHP - lá»‹ch sá»­ vÃ  bÃ i Ä‘Äƒng cá»§a ngÆ°á»i dÃ¹ng
+   PROFILE.PHP - lá»‹ch sá»­ vÃ  bÃ i Ä‘Äƒng cá»§a ngÆ°á»i dÃ¹ng
    ====================================================================== */
 .profile-page {
     max-width: 700px;
@@ -778,7 +771,7 @@ body {
 }
 
 /* ======================================================================
-   ADMIN.PHP - dashboard vÃ  thÃ´ng bÃ¡o sau thao tÃ¡c quáº£n trá»‹
+   ADMIN.PHP - dashboard vÃ  thÃ´ng bÃ¡o sau thao tÃ¡c quáº£n trá»‹
    ====================================================================== */
 .alert-success {
     color: #1f6b3b;
@@ -813,7 +806,7 @@ body {
 }
 
 /* ======================================================================
-   CSS TRÃCH Tá»ª includes/header.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
+   CSS TRÃCH Tá»ª includes/header.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
    ====================================================================== */
 :root {
     --primary: #dda975;
@@ -855,7 +848,7 @@ body {
 
 
 
-/* Giá»¯ footer sÃ¡t cuá»‘i trang vÃ  chá»‰ chá»«a chá»— khi thanh so sÃ¡nh Ä‘ang hiá»‡n. */
+/* Giá»¯ footer sÃ¡t cuá»‘i trang vÃ  chá»‰ chá»«a chá»— khi thanh so sÃ¡nh Ä‘ang hiá»‡n. */
 body>main.container {
     width: 100%;
     flex: 1 0 auto;
@@ -863,12 +856,12 @@ body>main.container {
 }
 
 body.compare-dock-visible {
-    padding-bottom: 68px !important;
+    padding-bottom: 82px !important;
 }
 
 @media (max-width: 680px) {
     body.compare-dock-visible {
-        padding-bottom: 90px !important;
+        padding-bottom: 106px !important;
     }
 }
 
@@ -900,7 +893,7 @@ button,
     letter-spacing: .035em;
 }
 
-/* Äá»“ng bá»™ mÃ u cÃ¡c nÃºt dÃ¹ng chung cá»§a toÃ n website. */
+/* Äá»“ng bá»™ mÃ u cÃ¡c nÃºt dÃ¹ng chung cá»§a toÃ n website. */
 .btn-primary {
     border-color: var(--site-primary) !important;
     background: var(--site-primary) !important;
@@ -932,7 +925,7 @@ input[type="range"] {
     accent-color: var(--site-primary-dark);
 }
 
-/* Header mÃ u Ä‘en - vÃ ng cÃ¡t vÃ  luÃ´n bÃ¡m theo mÃ n hÃ¬nh khi cuá»™n. */
+/* Header mÃ u Ä‘en - vÃ ng cÃ¡t vÃ  luÃ´n bÃ¡m theo mÃ n hÃ¬nh khi cuá»™n. */
 .navbar {
     position: sticky !important;
     top: 0;
@@ -948,11 +941,15 @@ input[type="range"] {
 }
 
 .navbar .nav-content {
-    min-height: 76px;
+    width: min(1460px, calc(100% - 64px));
+    max-width: none;
+    min-height: 88px;
+    margin: 0 auto;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 28px;
+    gap: 32px;
 }
 
 .navbar .logo,
@@ -964,7 +961,7 @@ input[type="range"] {
 
 .navbar .logo {
     font-family: var(--font-logo);
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 600;
     line-height: 1;
     letter-spacing: .045em;
@@ -977,14 +974,14 @@ input[type="range"] {
 
 .navbar nav {
     font-family: var(--font-body);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: .01em;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 10px 24px;
+    gap: 10px 28px;
 }
 
 .navbar nav a,
@@ -1017,7 +1014,7 @@ input[type="range"] {
 
 .navbar .btn-outline,
 .navbar .btn-register {
-    padding: 8px 15px;
+    padding: 10px 18px;
     border: 1px solid var(--site-primary) !important;
     border-radius: 0;
     background: transparent !important;
@@ -1042,6 +1039,7 @@ input[type="range"] {
 
 @media (max-width: 780px) {
     .navbar .nav-content {
+        width: min(100% - 24px, 560px);
         padding-top: 12px;
         padding-bottom: 12px;
         align-items: flex-start;
@@ -1058,7 +1056,7 @@ input[type="range"] {
 
 
 /* ======================================================================
-   CSS TRÃCH Tá»ª includes/footer.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
+   CSS TRÃCH Tá»ª includes/footer.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
    ====================================================================== */
 .site-footer,
 .site-footer * {
@@ -1392,7 +1390,7 @@ body {
 .patel-section-title {
     margin: 0;
     font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
-    font-size: clamp(44px, 5vw, 72px);
+    font-size: clamp(40px, 4.2vw, 60px);
     font-weight: 600;
     line-height: 1.05;
     text-align: center;
@@ -1562,13 +1560,13 @@ body {
 .hero-search-wrap {
     position: relative;
     z-index: 8;
-    margin-top: -105px;
+    margin-top: -85px;
 }
 
 #smartSearchForm.hero-search {
     width: 100% !important;
     max-width: none !important;
-    min-height: 182px;
+    min-height: 146px;
     margin: 0 !important;
     padding: 0 !important;
     display: grid;
@@ -1586,7 +1584,7 @@ body {
 .hero-search-field {
     position: relative;
     min-width: 0;
-    padding: 29px 42px;
+    padding: 21px 30px;
     border-right: 1px dashed #d9d3cf;
     display: flex;
     flex-direction: column;
@@ -1594,9 +1592,9 @@ body {
 }
 
 .hero-search-label {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
-    font-size: 18px;
+    font-size: 16px;
     color: #2a2725;
 }
 
@@ -1608,7 +1606,7 @@ body {
     background: transparent;
     color: #090909;
     font-family: var(--font-label, 'Oswald', Arial, sans-serif);
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 600;
     text-transform: uppercase;
 }
@@ -1626,15 +1624,15 @@ body {
 .budget-value-line {
     display: flex;
     align-items: baseline;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 7px;
+    margin-bottom: 8px;
     font-family: var(--font-label, 'Oswald', Arial, sans-serif);
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 600;
 }
 
 .budget-unit {
-    font-size: 16px;
+    font-size: 14px;
     color: #807a75;
 }
 
@@ -1678,7 +1676,7 @@ body {
     list-style: none;
     cursor: pointer;
     font-family: var(--font-label, 'Oswald', Arial, sans-serif);
-    font-size: 24px;
+    font-size: 19px;
     font-weight: 600;
     text-transform: uppercase;
 }
@@ -1748,10 +1746,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 18px;
-    padding: 30px;
+    gap: 13px;
+    padding: 22px;
     font-family: var(--font-label, 'Oswald', Arial, sans-serif);
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 600;
     letter-spacing: .02em;
     text-transform: uppercase;
@@ -1763,8 +1761,8 @@ body {
 }
 
 .hero-search-button svg {
-    width: 42px;
-    height: 42px;
+    width: 34px;
+    height: 34px;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.5;
@@ -1774,17 +1772,22 @@ body {
 /* HOTEL CARDS – lưới 2 cột kiểu editorial                       */
 /* ============================================================= */
 .hotel-showcase {
-    padding: 120px 0 100px;
+    padding: 96px 0 88px;
+}
+
+/* Giới hạn chiều rộng khu khách sạn để card cân đối như mẫu tham khảo. */
+.hotel-showcase .patel-shell {
+    width: min(1380px, calc(100% - 64px));
 }
 
 .hotel-showcase-heading {
-    margin-bottom: 58px;
+    margin-bottom: 48px;
 }
 
 .hotel-list-modern {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 58px 60px;
+    gap: 44px 42px;
 }
 
 .hotel-modern-card {
@@ -1801,7 +1804,7 @@ body {
 
 .hotel-modern-image-wrap {
     position: relative;
-    height: 500px;
+    height: 440px;
     overflow: hidden;
     background: #eee;
 }
@@ -1821,8 +1824,8 @@ body {
     position: absolute;
     left: 0;
     bottom: 0;
-    min-width: 190px;
-    padding: 17px 26px;
+    min-width: 175px;
+    padding: 15px 24px;
     background: var(--patel-accent);
     color: #fff;
     font-family: var(--font-label, 'Oswald', Arial, sans-serif);
@@ -1845,15 +1848,15 @@ body {
 }
 
 .hotel-modern-body {
-    padding: 34px 32px 32px;
+    padding: 30px;
 }
 
 .hotel-meta {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 22px;
-    margin-bottom: 18px;
+    gap: 20px;
+    margin-bottom: 16px;
     color: #86817d;
     font-family: var(--font-label, 'Oswald', Arial, sans-serif);
     font-size: 15px;
@@ -1877,17 +1880,17 @@ body {
 .hotel-modern-title {
     margin: 0 0 14px;
     font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
-    font-size: clamp(31px, 2.7vw, 45px);
+    font-size: clamp(28px, 2vw, 36px);
     font-weight: 600;
     line-height: 1.14;
 }
 
 .hotel-modern-description {
-    min-height: 78px;
+    min-height: 72px;
     margin: 0;
     color: #79746f;
-    font-size: 16px;
-    line-height: 1.7;
+    font-size: 15.5px;
+    line-height: 1.65;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
@@ -1906,8 +1909,8 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 14px;
-    margin-top: 25px;
-    padding-top: 22px;
+    margin-top: 22px;
+    padding-top: 19px;
     border-top: 1px solid var(--patel-line);
 }
 
@@ -2117,11 +2120,11 @@ body {
     }
 
     .hero-search-button {
-        min-height: 145px;
+        min-height: 120px;
     }
 
     .hotel-modern-image-wrap {
-        height: 410px;
+        height: 365px;
     }
 
     .service-card {
@@ -2151,7 +2154,7 @@ body {
     }
 
     .hotel-modern-image-wrap {
-        height: 470px;
+        height: 430px;
     }
 
     .services-grid {
@@ -2197,7 +2200,7 @@ body {
     }
 
     .hero-search-wrap {
-        margin-top: -80px;
+        margin-top: -68px;
     }
 
     #smartSearchForm.hero-search {
@@ -2205,14 +2208,14 @@ body {
     }
 
     .hero-search-field {
-        min-height: 126px;
-        padding: 24px;
+        min-height: 108px;
+        padding: 20px;
         border-right: 0;
         border-bottom: 1px dashed #d9d3cf;
     }
 
     .hero-search-button {
-        min-height: 115px;
+        min-height: 96px;
     }
 
     .hero-amenity-menu {
@@ -2221,15 +2224,19 @@ body {
     }
 
     .hotel-showcase {
-        padding-top: 90px;
+        padding-top: 72px;
+    }
+
+    .hotel-showcase .patel-shell {
+        width: min(100% - 24px, 560px);
     }
 
     .hotel-modern-image-wrap {
-        height: 330px;
+        height: 300px;
     }
 
     .hotel-modern-body {
-        padding: 26px 22px;
+        padding: 24px 21px;
     }
 
     .hotel-modern-actions {
@@ -2288,12 +2295,14 @@ body {
 }
 
 #compareDock .dock-content {
-    min-height: 66px;
+    min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
     background: transparent !important;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 #compareDock .dock-actions {
@@ -2312,10 +2321,12 @@ body {
 }
 
 #compareDock #btnClearCompare {
+    padding: 10px 12px;
     border: 0 !important;
     background: transparent !important;
     color: #fff !important;
     cursor: pointer;
+    font-size: 15px;
 }
 
 #compareDock #btnClearCompare:hover {
@@ -2323,10 +2334,12 @@ body {
 }
 
 #compareDock .btn-primary {
+    padding: 11px 20px;
     border: 1px solid var(--patel-accent) !important;
     background: var(--patel-accent) !important;
     color: #191919 !important;
     box-shadow: none !important;
+    font-size: 15px;
 }
 
 #compareDock .btn-primary:hover {
@@ -2932,7 +2945,7 @@ body {
 }
 
 /* ======================================================================
-   CSS TRÃCH Tá»ª community.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
+   CSS TRÃCH Tá»ª community.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
    ====================================================================== */
 .feed-container {
     max-width: 600px;
@@ -3277,7 +3290,7 @@ body {
     background: #fff5f5;
 }
 
-/* Fade-out khi xÃ³a bÃ i */
+/* Fade-out khi xÃ³a bÃ i */
 @keyframes fadeOutPost {
     from {
         opacity: 1;
@@ -3379,7 +3392,7 @@ body {
 }
 
 /* ======================================================================
-   CSS TRÃCH Tá»ª adminadd.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
+   CSS TRÃCH Tá»ª adminadd.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
    ====================================================================== */
 .form-group {
     margin-bottom: 15px;
@@ -3434,7 +3447,7 @@ textarea.form-control {
 }
 
 /* ======================================================================
-   CSS TRÃCH Tá»ª edit_hotel.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
+   CSS TRÃCH Tá»ª edit_hotel.php - giao diá»‡n riÃªng cá»§a trang/thÃ nh pháº§n
    ====================================================================== */
 .form-group {
     margin-bottom: 15px;
@@ -3486,7 +3499,7 @@ textarea.form-control {
     height: 16px;
 }
 
-/* Biá»ƒu máº«u thÃªm/sá»­a khÃ¡ch sáº¡n: dÃ¹ng chung Ä‘á»ƒ hai mÃ n hÃ¬nh luÃ´n Ä‘á»“ng nháº¥t. */
+/* Biá»ƒu máº«u thÃªm/sá»­a khÃ¡ch sáº¡n: dÃ¹ng chung Ä‘á»ƒ hai mÃ n hÃ¬nh luÃ´n Ä‘á»“ng nháº¥t. */
 .hotel-admin-form {
     max-width: 800px;
     margin: 30px auto;
@@ -3625,26 +3638,152 @@ textarea.form-control {
     }
 }
 
-.hotel-detail-page .hotel-content-card {
-    font-size: 16px;
+.navbar .nav-content {
+    min-height: 94px !important;
 }
 
-/* Tiêu đề: Mô tả, Tiện nghi và dịch vụ, Bảng giá phòng */
-.hotel-detail-page .hotel-section-heading {
-    font-size: 28px;
-    line-height: 1.3;
+.navbar .logo {
+    font-size: 38px !important;
 }
 
-/* Nội dung mô tả */
-.hotel-detail-page .hotel-description {
-    font-size: 16px;
-    line-height: 1.8;
+.navbar nav {
+    font-size: 16px !important;
 }
 
-/* Danh sách tiện nghi */
-.hotel-detail-page .amenity-item,
-.hotel-detail-page .amenity-name,
-.hotel-detail-page .amenities-empty {
-    font-size: 16px;
-    line-height: 1.6;
+/* Thanh tìm kiếm nhỏ và có khoảng trống hai bên */
+.hero-search-wrap {
+    width: min(1120px, calc(100% - 64px)) !important;
+    margin: -62px auto 0 !important;
+}
+
+#smartSearchForm.hero-search {
+    min-height: 108px !important;
+}
+
+.hero-search-field {
+    padding: 17px 22px !important;
+}
+
+.hero-search-label {
+    margin-bottom: 7px !important;
+    font-size: 14px !important;
+}
+
+.hero-search-value,
+.hero-search input[type="number"],
+.budget-value-line {
+    font-size: 18px !important;
+}
+
+.hero-amenity-summary {
+    font-size: 17px !important;
+}
+
+.hero-search-button {
+    padding: 18px !important;
+    font-size: 15px !important;
+}
+
+.hero-search-button svg {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+/* Danh sách khách sạn nhỏ và cân đối */
+.hotel-showcase {
+    padding: 88px 0 80px !important;
+}
+
+.hotel-list-modern {
+    width: min(1100px, 100%) !important;
+    margin: 0 auto !important;
+    gap: 32px !important;
+}
+
+.hotel-modern-image-wrap {
+    height: 300px !important;
+}
+
+.hotel-modern-body {
+    padding: 24px !important;
+}
+
+.hotel-meta {
+    gap: 16px !important;
+    margin-bottom: 14px !important;
+    font-size: 14px !important;
+}
+
+.hotel-modern-title {
+    margin-bottom: 11px !important;
+    font-size: 30px !important;
+}
+
+.hotel-modern-description {
+    min-height: 66px !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+
+.hotel-modern-address {
+    margin-top: 14px !important;
+    font-size: 13px !important;
+}
+
+.hotel-price-ribbon {
+    min-width: 165px !important;
+    padding: 13px 20px !important;
+    font-size: 15px !important;
+}
+
+/* Thanh thông báo đem vào so sánh */
+#compareDock .dock-content {
+    width: min(1100px, calc(100% - 48px)) !important;
+    min-height: 68px !important;
+    margin: 0 auto !important;
+    font-size: 15px !important;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .hero-search-wrap {
+        width: min(760px, calc(100% - 36px)) !important;
+    }
+
+    .hotel-modern-image-wrap {
+        height: 330px !important;
+    }
+}
+
+/* Điện thoại */
+@media (max-width: 680px) {
+    .navbar .nav-content {
+        min-height: auto !important;
+    }
+
+    .navbar .logo {
+        font-size: 32px !important;
+    }
+
+    .hero-search-wrap {
+        width: calc(100% - 24px) !important;
+        margin-top: -48px !important;
+    }
+
+    .hero-search-field {
+        min-height: 88px !important;
+        padding: 16px 18px !important;
+    }
+
+    .hero-search-button {
+        min-height: 78px !important;
+    }
+
+    .hotel-modern-image-wrap {
+        height: 245px !important;
+    }
+
+    #compareDock .dock-content {
+        width: calc(100% - 24px) !important;
+    }
 }
