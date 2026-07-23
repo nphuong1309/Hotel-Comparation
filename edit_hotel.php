@@ -192,8 +192,8 @@ require_once 'includes/header.php';
             </div>
             
             <div class="form-group">
-                <label>Số sao:</label>
-                <input type="number" name="stars" class="form-control" min="1" max="5" step="0.5" value="<?= e($hotel['star_rating'] ?? 1) ?>" required>
+                <label>Đánh giá:</label>
+                <input type="number" name="stars" class="form-control" min="1" max="5" step="0.1" value="<?= e($hotel['star_rating'] ?? 1) ?>" required>
             </div>
         </div>
 

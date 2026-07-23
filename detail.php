@@ -210,8 +210,6 @@ require_once 'includes/header.php';
     <!-- Card thông tin bên trái và slider ảnh bên phải -->
     <section class="hotel-feature-section">
         <div class="hotel-intro-card">
-            <span class="hotel-intro-number" aria-hidden="true">01</span>
-
             <h2 class="hotel-intro-title">Thông tin khách sạn</h2>
 
             <div class="hotel-quick-information">
@@ -230,7 +228,7 @@ require_once 'includes/header.php';
                 </div>
 
                 <div class="hotel-quick-row">
-                    <span class="hotel-quick-label">Hạng sao:</span>
+                    <span class="hotel-quick-label">Đánh giá:</span>
                     <span class="hotel-quick-value hotel-rating-value">
                         <?= renderHotelStars($starRating) ?>
                     </span>
