@@ -297,7 +297,14 @@ function initAdminAddPage() {
             setValue('adminName', data.name);
             setValue('adminAddress', data.address);
             setValue('adminPhone', (data.phone || '').replace(/\s+/g, ''));
-            setValue('adminStars', data.stars || 4);
+            const ratingValue =
+                data.stars === '' ||
+                    data.stars === null ||
+                    data.stars === undefined
+                    ? ''
+                    : Number(data.stars).toFixed(1);
+
+            setValue('adminStars', ratingValue);
             setValue('adminDescription', data.description);
             window.alert('Tự động điền dữ liệu từ Google Maps thành công! Hãy kiểm tra trước khi lưu.');
         } catch (error) {

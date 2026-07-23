@@ -155,7 +155,7 @@ require_once 'includes/header.php';
 
             <div class="form-group">
                 <label>Đánh giá:</label>
-                <input type="number" name="stars" id="adminStars" class="form-control" min="1" max="5" step="0.1" value="<?= e($_POST['stars'] ?? '4') ?>" required>
+                <input type="number" name="stars" id="adminStars" class="form-control" min="1" max="5" step="0.1" value="<?= e($_POST['stars'] ?? '') ?>" required>
             </div>
         </div>
 
