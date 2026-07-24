@@ -142,7 +142,7 @@ function hotel_image_candidates(int $hotelId, ?string $databaseImages = null): a
         $pattern = $config['uploads']['directory'] . DIRECTORY_SEPARATOR . "hotel_{$hotelId}_*.{$extension}";
         foreach (glob($pattern) ?: [] as $absolutePath) {
             $publicPath = $config['uploads']['public_prefix'] . basename($absolutePath);
-            $rankedImages[$publicPath] = stripos(basename($publicPath), '_primary.') !== false ? 2 : 0;
+            $rankedImages[$publicPath] = stripos(basename($publicPath), '_primary.') !== false ? 3 : 1;
         }
     }
 
@@ -157,7 +157,11 @@ function hotel_image_candidates(int $hotelId, ?string $databaseImages = null): a
             $primary = '0';
         }
         $imagePath = trim((string) $imagePath);
-        if ($imagePath === '') {
+        if (
+            $imagePath === ''
+            || stripos($imagePath, 'via.placeholder.com') !== false
+            || strpos($imagePath, '..') !== false
+        ) {
             continue;
         }
 
@@ -175,6 +179,25 @@ function hotel_image_candidates(int $hotelId, ?string $databaseImages = null): a
     });
 
     return array_keys($rankedImages);
+}
+
+/**
+ * Trả về ảnh chính có thật trên server hoặc ảnh mặc định của website.
+ */
+function hotel_primary_image(int $hotelId): string
+{
+    global $config;
+
+    foreach (['jpg', 'jpeg', 'png', 'webp', 'gif', 'jfif'] as $extension) {
+        $filename = "hotel_{$hotelId}_primary.{$extension}";
+        $absolutePath = $config['uploads']['directory'] . DIRECTORY_SEPARATOR . $filename;
+
+        if (is_file($absolutePath)) {
+            return $config['uploads']['public_prefix'] . $filename;
+        }
+    }
+
+    return $config['uploads']['public_prefix'] . 'default-hotel.jpg';
 }
 
 /**

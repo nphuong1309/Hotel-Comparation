@@ -80,9 +80,13 @@ function normalizeHotelImagePath(?string $imagePath): ?string
         return null;
     }
 
-    // Link ảnh bên ngoài vẫn giữ nguyên.
-    if (preg_match('~^https?://~i', $imagePath)) {
-        return $imagePath;
+    // Trang chi tiết chỉ hiển thị ảnh local đã kiểm tra tồn tại.
+    if (
+        preg_match('~^https?://~i', $imagePath)
+        || stripos($imagePath, 'via.placeholder.com') !== false
+        || strpos($imagePath, '..') !== false
+    ) {
+        return null;
     }
 
     $imagePath = str_replace('\\', '/', $imagePath);
@@ -95,7 +99,9 @@ function normalizeHotelImagePath(?string $imagePath): ?string
         $imagePath = ltrim($imagePath, '/');
     }
 
-    return is_file($imagePath) ? $imagePath : null;
+    $imageFile = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+
+    return is_file($imageFile) ? $imagePath : null;
 }
 
 $diskImages = glob(
@@ -166,7 +172,7 @@ if ($primaryImage === null) {
 
 if ($primaryImage === null) {
     $primaryImage = $allImages[0]
-        ?? 'https://via.placeholder.com/1600x760?text=No+Image';
+        ?? 'uploads/default-hotel.jpg';
 }
 
 // Slider ưu tiên các ảnh phụ; nếu không có thì vẫn hiển thị ảnh primary.
@@ -201,7 +207,13 @@ require_once 'includes/header.php';
     <!-- Ảnh primary đặt dưới tên khách sạn -->
     <section class="hotel-hero">
         <!-- Ảnh là dữ liệu động; đặt thành phần HTML thay vì nhúng CSS vào PHP. -->
-        <img class="hotel-hero-background" src="<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>" alt="" aria-hidden="true">
+        <img
+            class="hotel-hero-background"
+            src="<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>"
+            alt=""
+            aria-hidden="true"
+            onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
+        >
         <h1 class="hotel-hero-title">
             <?= htmlspecialchars($hotel['name']) ?>
         </h1>
@@ -248,10 +260,10 @@ require_once 'includes/header.php';
                 <?php foreach ($carouselImages as $imageIndex => $imagePath): ?>
                     <div class="hotel-carousel-slide">
                         <img
-                            src="<?= htmlspecialchars($imagePath) ?>"
-                            alt="Hình ảnh <?= $imageIndex + 1 ?> của <?= htmlspecialchars($hotel['name']) ?>"
+                            src="<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>"
+                            alt="Hình ảnh <?= $imageIndex + 1 ?> của <?= htmlspecialchars($hotel['name'], ENT_QUOTES, 'UTF-8') ?>"
                             loading="<?= $imageIndex === 0 ? 'eager' : 'lazy' ?>"
-                            onerror="this.onerror=null; this.src='<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>';"
+                            onerror="this.onerror=null;this.src='<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>';"
                         >
                     </div>
                 <?php endforeach; ?>

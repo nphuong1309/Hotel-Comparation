@@ -91,7 +91,7 @@ foreach ($amenityRows as $amenityRow) {
 foreach ($hotels as &$hotel) {
     $hotelId = (int) $hotel['id'];
     $images = hotel_image_candidates($hotelId, $hotel['db_images'] ?? null);
-    $hotel['image_url'] = $images[0] ?? 'https://via.placeholder.com/400x250?text=No+Image';
+    $hotel['image_url'] = $images[0] ?? 'uploads/default-hotel.jpg';
 }
 unset($hotel);
 
@@ -108,8 +108,10 @@ require_once 'includes/header.php';
                 <th class="compare-hotel-heading">
                     <img
                         class="compare-hotel-image"
-                        src="<?= htmlspecialchars($h['image_url']) ?>"
-                        alt="<?= htmlspecialchars($h['name']) ?>"
+                        src="<?= htmlspecialchars($h['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                        alt="<?= htmlspecialchars($h['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        loading="lazy"
+                        onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
                     >
 
                     <span class="compare-hotel-name">
