@@ -152,7 +152,7 @@ require_once 'includes/header.php';
 
     <!-- KHU VỰC BẢNG TIN -->
     <?php foreach($posts as $post): ?>
-    <div class="post-card">
+    <div class="post-card" id="post-<?= (int) $post['id'] ?>">
         <!-- Header -->
         <div class="post-header">
             <div class="avatar"><?= e(mb_strtoupper(mb_substr($post['author_name'], 0, 1))) ?></div>

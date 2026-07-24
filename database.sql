@@ -427,16 +427,8 @@ INSERT INTO `rooms` (`id`, `hotel_id`, `capacity`, `price`) VALUES
 (20, 10, 4, 550000),
 (27, 14, 2, 2000000),
 (28, 14, 4, 4500000),
-(29, 1, 2, 1200000),
-(30, 1, 4, 2500000),
 (31, 15, 2, 500000),
-(32, 15, 4, 1500000),
-(33, 14, 2, 2000000),
-(34, 14, 4, 4500000),
-(35, 15, 2, 500000),
-(36, 15, 4, 1500000),
-(37, 1, 2, 1200000),
-(38, 1, 4, 2500000);
+(32, 15, 4, 1500000);
 
 -- --------------------------------------------------------
 
@@ -535,7 +527,7 @@ ALTER TABLE `hotel_images`
 --
 ALTER TABLE `rooms`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `hotel_id` (`hotel_id`);
+  ADD UNIQUE KEY `uq_rooms_hotel_capacity` (`hotel_id`,`capacity`);
 
 --
 -- Chỉ mục cho bảng `users`

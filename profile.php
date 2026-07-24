@@ -7,31 +7,28 @@ require_once 'includes/header.php';
 $user_id = $_SESSION['user_id'];
 
 // 1. Lịch sử so sánh
-$stmt = $pdo->prepare("SELECT * FROM comparison_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20");
+$stmt = $pdo->prepare("SELECT * FROM comparison_history WHERE user_id = ? ORDER BY created_at DESC");
 $stmt->execute([$user_id]);
 $history_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$history = [];
-$seen_history_keys = [];
+$normalized_history = [];
+$all_ids = [];
 foreach ($history_raw as $item) {
-    $ids = array_values(array_unique(array_filter(array_map('trim', explode(',', $item['hotel_ids'])))));
-    sort($ids, SORT_NUMERIC);
-    $history_key = implode(',', $ids);
-
-    if (isset($seen_history_keys[$history_key])) {
-        continue;
+    $ids = [];
+    foreach (explode(',', (string) $item['hotel_ids']) as $raw_id) {
+        $hotel_id = positive_int(trim($raw_id));
+        if ($hotel_id !== null) {
+            $ids[$hotel_id] = $hotel_id;
+        }
     }
 
-    $seen_history_keys[$history_key] = true;
-    $item['hotel_ids'] = $history_key;
-    $history[] = $item;
+    $ids = array_values($ids);
+    sort($ids, SORT_NUMERIC);
+    $item['_hotel_ids'] = $ids;
+    $normalized_history[] = $item;
+    $all_ids = array_merge($all_ids, $ids);
 }
-
-$all_ids = [];
-foreach ($history as $h) {
-    $all_ids = array_merge($all_ids, explode(',', $h['hotel_ids']));
-}
-$all_ids = array_unique(array_filter($all_ids));
+$all_ids = array_values(array_unique($all_ids));
 
 $hotel_names = [];
 if (!empty($all_ids)) {
@@ -39,8 +36,49 @@ if (!empty($all_ids)) {
     $stmt_names = $pdo->prepare("SELECT id, name FROM hotels WHERE id IN ($placeholders)");
     $stmt_names->execute(array_values($all_ids));
     foreach ($stmt_names->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $hotel_names[$row['id']] = $row['name'];
+        $hotel_names[(int) $row['id']] = $row['name'];
     }
+}
+
+$history = [];
+$stale_history_ids = [];
+$seen_history_keys = [];
+foreach ($normalized_history as $item) {
+    $ids = $item['_hotel_ids'];
+    $has_missing_hotel = empty($ids);
+
+    foreach ($ids as $hotel_id) {
+        if (!isset($hotel_names[$hotel_id])) {
+            $has_missing_hotel = true;
+            break;
+        }
+    }
+
+    if ($has_missing_hotel) {
+        $stale_history_ids[] = (int) $item['id'];
+        continue;
+    }
+
+    $history_key = implode(',', $ids);
+    if (isset($seen_history_keys[$history_key])) {
+        continue;
+    }
+
+    $seen_history_keys[$history_key] = true;
+    if (count($history) < 20) {
+        $item['hotel_ids'] = $history_key;
+        unset($item['_hotel_ids']);
+        $history[] = $item;
+    }
+}
+
+if (!empty($stale_history_ids)) {
+    $stale_placeholders = implode(',', array_fill(0, count($stale_history_ids), '?'));
+    $delete_stale = $pdo->prepare(
+        "DELETE FROM comparison_history
+         WHERE user_id = ? AND id IN ($stale_placeholders)"
+    );
+    $delete_stale->execute(array_merge([(int) $user_id], $stale_history_ids));
 }
 
 // 2. Bài đăng của tôi trong Cộng đồng
@@ -70,7 +108,7 @@ if (!empty($my_post_ids)) {
         <?php if (count($history) > 0): ?>
             <?php foreach ($history as $h):
                 $ids = array_filter(explode(',', $h['hotel_ids']));
-                $names = array_map(fn($id) => $hotel_names[$id] ?? "KS #$id", $ids);
+                $names = array_map(fn($id) => $hotel_names[(int) $id], $ids);
             ?>
                 <div class="profile-card">
                     <div class="profile-card-row">
@@ -112,6 +150,9 @@ if (!empty($my_post_ids)) {
                         <span><?= date('d/m/Y H:i', strtotime($post['created_at'])) ?></span>
                         <span>❤️ <?= $post['likes_count'] ?> lượt thích</span>
                     </div>
+                    <a href="community.php#post-<?= (int) $post['id'] ?>" class="btn-outline profile-post-link">
+                        Xem bài đăng
+                    </a>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>

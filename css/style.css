@@ -726,6 +726,11 @@ body {
     margin-top: 6px;
 }
 
+.profile-post-link {
+    display: inline-block;
+    margin-top: 12px;
+}
+
 .profile-image-grid {
     display: flex;
     flex-wrap: wrap;
@@ -2961,6 +2966,11 @@ body {
     margin-bottom: 25px;
     border: 1px solid #efefef;
     overflow: hidden;
+    scroll-margin-top: 110px;
+}
+
+.post-card:target {
+    box-shadow: 0 0 0 3px rgba(84, 37, 72, 0.2), 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 .post-header {

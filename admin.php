@@ -24,6 +24,12 @@ if (is_post_request() && isset($_POST['delete_hotel'])) {
 
     try {
         $pdo->beginTransaction();
+        $historyStmt = $pdo->prepare(
+            "DELETE FROM comparison_history
+             WHERE FIND_IN_SET(CAST(? AS CHAR), REPLACE(hotel_ids, ' ', '')) > 0"
+        );
+        $historyStmt->execute([$hotelId]);
+
         $stmt = $pdo->prepare('DELETE FROM hotels WHERE id = ?');
         $stmt->execute([$hotelId]);
         $pdo->commit();

@@ -128,8 +128,18 @@ if (!$hotel) {
     die("Không tìm thấy khách sạn.");
 }
 
-$stmt_room = $pdo->prepare("SELECT capacity, price FROM rooms WHERE hotel_id = ?");
-$stmt_room->execute([$id]);
+$stmt_room = $pdo->prepare(
+    "SELECT room.capacity, room.price
+     FROM rooms room
+     INNER JOIN (
+         SELECT capacity, MAX(id) AS latest_id
+         FROM rooms
+         WHERE hotel_id = ?
+         GROUP BY capacity
+     ) latest ON latest.latest_id = room.id
+     WHERE room.hotel_id = ?"
+);
+$stmt_room->execute([$id, $id]);
 $rooms = $stmt_room->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $price_2 = $rooms[2] ?? 0;

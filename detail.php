@@ -186,8 +186,19 @@ if (!$carouselImages) {
 }
 
 // 3. Lấy phòng và giá
-$stmtRoom = $pdo->prepare('SELECT * FROM rooms WHERE hotel_id = ? ORDER BY capacity ASC, price ASC');
-$stmtRoom->execute([$id]);
+$stmtRoom = $pdo->prepare(
+    'SELECT room.id, room.hotel_id, room.capacity, room.price
+     FROM rooms room
+     INNER JOIN (
+         SELECT capacity, MAX(id) AS latest_id
+         FROM rooms
+         WHERE hotel_id = ?
+         GROUP BY capacity
+     ) latest ON latest.latest_id = room.id
+     WHERE room.hotel_id = ?
+     ORDER BY room.capacity ASC'
+);
+$stmtRoom->execute([$id, $id]);
 $rooms = $stmtRoom->fetchAll(PDO::FETCH_ASSOC);
 
 // 4. Lấy tiện nghi cùng mã icon
