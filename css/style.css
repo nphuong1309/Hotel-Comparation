@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --primary: #dda975;
     /* vÃ ng cÃ¡t â€“ khá»›p vá»›i header.php */
     --primary-dark: #c58b56;
@@ -1895,6 +1895,7 @@ body {
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
 }
 
 .hotel-modern-address {
