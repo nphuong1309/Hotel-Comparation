@@ -65,14 +65,9 @@ $sql = "SELECT
             h.name,
             h.address,
             h.vibe,
-            MIN(r.price) AS price,
-            GROUP_CONCAT(
-                DISTINCT CONCAT(COALESCE(i.is_primary, 0), '::', i.image_url)
-                ORDER BY i.is_primary DESC, i.id ASC SEPARATOR '|||'
-            ) AS db_images
+            MIN(r.price) AS price
         FROM hotels h
         INNER JOIN rooms r ON r.hotel_id = h.id
-        LEFT JOIN hotel_images i ON i.hotel_id = h.id
         WHERE r.capacity >= :capacity
           AND r.price <= :budget";
 
@@ -130,10 +125,10 @@ $stmt->execute();
 
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Gán ảnh đại diện từ cùng một nguồn ảnh dùng chung với trang chủ.
+// Luôn dùng ảnh chính có thật trên server, không phụ thuộc dữ liệu ảnh mẫu cũ.
 foreach ($results as &$hotelResult) {
-    $images = hotel_image_candidates((int) $hotelResult['id'], $hotelResult['db_images'] ?? null);
-    $hotelResult['image_url'] = $images[0] ?? 'https://via.placeholder.com/400x250?text=No+Image';
+    $hotelId = (int) $hotelResult['id'];
+    $hotelResult['image_url'] = hotel_primary_image($hotelId);
 }
 unset($hotelResult);
 
@@ -341,8 +336,10 @@ require_once 'includes/header.php';
                 <article class="hotel-card">
 
                     <img
-                        src="<?= htmlspecialchars($hotel['image_url']) ?>"
-                        alt="<?= htmlspecialchars($hotel['name']) ?>"
+                        src="<?= htmlspecialchars($hotel['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                        alt="<?= htmlspecialchars($hotel['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        loading="lazy"
+                        onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
                     >
 
                     <div class="card-content">

@@ -189,7 +189,7 @@ function buildHeroSlides(array $hotels, int $limit = 4): array
 
     if (!$slides) {
         $slides[] = [
-            'image' => 'https://via.placeholder.com/1600x900?text=JoyTix',
+            'image' => 'uploads/default-hotel.jpg',
             'hotel_name' => 'JoyTix',
             'score' => 0,
         ];
@@ -204,7 +204,7 @@ foreach ($hotels as &$hotel) {
         $hotel['db_images'] ?? null
     );
     if (!$hotel['display_images']) {
-        $hotel['display_images'] = ['https://via.placeholder.com/1200x760?text=JoyTix'];
+        $hotel['display_images'] = ['uploads/default-hotel.jpg'];
     }
 }
 unset($hotel);
@@ -222,18 +222,20 @@ require_once 'includes/header.php';
                 <?php foreach ($heroSlides as $index => $heroSlide): ?>
                     <div class="hero-slide <?= $index === 0 ? 'is-active' : '' ?>">
                         <img
-                            src="<?= htmlspecialchars($heroSlide['image']) ?>"
-                            alt="<?= htmlspecialchars($heroSlide['hotel_name']) ?>"
+                            src="<?= htmlspecialchars($heroSlide['image'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($heroSlide['hotel_name'], ENT_QUOTES, 'UTF-8') ?>"
                             <?= $index === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
                             decoding="async"
+                            onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
                         >
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="hero-slide is-active">
                     <img
-                        src="https://via.placeholder.com/1600x900?text=JoyTix"
+                        src="uploads/default-hotel.jpg"
                         alt="JoyTix"
+                        onerror="this.onerror=null;"
                     >
                 </div>
             <?php endif; ?>
@@ -358,10 +360,11 @@ require_once 'includes/header.php';
                             <div class="hotel-modern-image-wrap">
                                 <img
                                     class="hotel-modern-image auto-slide-img"
-                                    src="<?= htmlspecialchars($hotel['display_images'][0]) ?>"
-                                    data-images="<?= htmlspecialchars(implode('|||', $hotel['display_images'])) ?>"
-                                    alt="<?= htmlspecialchars($hotel['name']) ?>"
+                                    src="<?= htmlspecialchars($hotel['display_images'][0], ENT_QUOTES, 'UTF-8') ?>"
+                                    data-images="<?= htmlspecialchars(implode('|||', $hotel['display_images']), ENT_QUOTES, 'UTF-8') ?>"
+                                    alt="<?= htmlspecialchars($hotel['name'], ENT_QUOTES, 'UTF-8') ?>"
                                     loading="lazy"
+                                    onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
                                 >
 
                                 <div class="hotel-price-ribbon">
