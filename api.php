@@ -184,7 +184,7 @@ function fetch_hotel_from_map(array $config, PDO $pdo): never
         $fields['description'] = make_hotel_description(
             $fields,
             $place,
-            (string) ($config['gemini_api_key'] ?? '')
+            (string) ($config['groq_api_key'] ?? '')
         );
 
         json_response(array_merge([
@@ -209,8 +209,12 @@ function fetch_hotel_from_map(array $config, PDO $pdo): never
 function read_map_input(string $input): array
 {
     $reference = [
-        'title' => '', 'place_id' => '', 'data_id' => '', 'data_cid' => '',
-        'latitude' => null, 'longitude' => null,
+        'title' => '',
+        'place_id' => '',
+        'data_id' => '',
+        'data_cid' => '',
+        'latitude' => null,
+        'longitude' => null,
     ];
 
     if (filter_var($input, FILTER_VALIDATE_URL) === false) {
@@ -341,7 +345,7 @@ function resolve_google_maps_url(string $url): string
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) JoyTix/1.0',
-        CURLOPT_WRITEFUNCTION => static fn ($curl, string $chunk): int => strlen($chunk),
+        CURLOPT_WRITEFUNCTION => static fn($curl, string $chunk): int => strlen($chunk),
     ]);
 
     $ok = curl_exec($ch);
@@ -368,8 +372,12 @@ function resolve_google_maps_url(string $url): string
 function extract_google_maps_reference(string $url): array
 {
     $result = [
-        'title' => '', 'place_id' => '', 'data_id' => '', 'data_cid' => '',
-        'latitude' => null, 'longitude' => null,
+        'title' => '',
+        'place_id' => '',
+        'data_id' => '',
+        'data_cid' => '',
+        'latitude' => null,
+        'longitude' => null,
     ];
     $decodedUrl = rawurldecode($url);
     $path = (string) parse_url($url, PHP_URL_PATH);
@@ -519,9 +527,13 @@ function normalize_map_text(string $value): string
     $value = mb_strtolower(trim($value), 'UTF-8');
     $value = preg_replace(
         [
-            '/[àáạảãâầấậẩẫăằắặẳẵ]/u', '/[èéẹẻẽêềếệểễ]/u',
-            '/[ìíịỉĩ]/u', '/[òóọỏõôồốộổỗơờớợởỡ]/u',
-            '/[ùúụủũưừứựửữ]/u', '/[ỳýỵỷỹ]/u', '/đ/u',
+            '/[àáạảãâầấậẩẫăằắặẳẵ]/u',
+            '/[èéẹẻẽêềếệểễ]/u',
+            '/[ìíịỉĩ]/u',
+            '/[òóọỏõôồốộổỗơờớợởỡ]/u',
+            '/[ùúụủũưừứựửữ]/u',
+            '/[ỳýỵỷỹ]/u',
+            '/đ/u',
         ],
         ['a', 'e', 'i', 'o', 'u', 'y', 'd'],
         $value
@@ -537,13 +549,24 @@ function contains_can_tho(string $value): bool
 function hotel_name_match_score(string $requestedTitle, string $candidateTitle): float
 {
     $stopWords = [
-        'khach', 'san', 'hotel', 'resort', 'motel', 'homestay', 'hostel',
-        'nha', 'nghi', 'can', 'tho', 'viet', 'nam',
+        'khach',
+        'san',
+        'hotel',
+        'resort',
+        'motel',
+        'homestay',
+        'hostel',
+        'nha',
+        'nghi',
+        'can',
+        'tho',
+        'viet',
+        'nam',
     ];
     $clean = static function (string $value) use ($stopWords): string {
         return implode(' ', array_values(array_filter(
             explode(' ', normalize_map_text($value)),
-            static fn (string $word): bool => $word !== '' && !in_array($word, $stopWords, true)
+            static fn(string $word): bool => $word !== '' && !in_array($word, $stopWords, true)
         )));
     };
 
@@ -641,15 +664,15 @@ function make_hotel_description(array $fields, array $place, string $geminiKey):
     }
 
     try {
-        return generate_hotel_description_with_gemini($fields, $place, $geminiKey);
+        return generate_hotel_description_with_groq($fields, $place, $geminiKey);
     } catch (Throwable $e) {
-        error_log('Gemini Error: ' . $e->getMessage());
+        error_log('Groq Error: ' . $e->getMessage());
         $rating = $fields['stars'] !== '' ? " Khách sạn có mức đánh giá {$fields['stars']}/5." : '';
         return "Chào mừng bạn đến với {$fields['name']}. Tọa lạc tại {$fields['address']}.{$rating} Không gian nghỉ dưỡng thoáng mát cùng các dịch vụ tiện lợi phù hợp cho chuyến đi của bạn.";
     }
 }
 
-function generate_hotel_description_with_gemini(array $fields, array $place, string $apiKey): string
+function generate_hotel_description_with_groq(array $fields, array $place, string $apiKey): string
 {
     $type = $place['type'] ?? 'Khách sạn';
     $type = is_array($type) ? implode(', ', $type) : (string) $type;
@@ -671,18 +694,23 @@ Yêu cầu:
 PROMPT;
 
     $payload = [
-        'contents' => [['parts' => [['text' => $prompt]]]],
-        'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 300],
+        'model' => 'llama-3.3-70b-versatile',
+        'messages' => [
+            ['role' => 'user', 'content' => $prompt],
+        ],
+        'temperature' => 0.7,
+        'max_tokens' => 300,
     ];
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/'
-        . 'gemini-2.0-flash-lite:generateContent?key=' . urlencode($apiKey);
 
-    $ch = curl_init($url);
+    $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ],
         CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
         CURLOPT_TIMEOUT => 15,
     ]);
@@ -693,17 +721,17 @@ PROMPT;
     curl_close($ch);
 
     if ($response === false) {
-        throw new RuntimeException('cURL Gemini lỗi: ' . $error);
+        throw new RuntimeException('cURL Groq lỗi: ' . $error);
     }
 
     $data = json_decode((string) $response, true);
     if ($status !== 200) {
-        throw new RuntimeException('Gemini HTTP ' . $status . ': ' . ($data['error']['message'] ?? 'Lỗi không xác định'));
+        throw new RuntimeException('Groq HTTP ' . $status . ': ' . ($data['error']['message'] ?? 'Lỗi không xác định'));
     }
 
-    $text = trim((string) ($data['candidates'][0]['content']['parts'][0]['text'] ?? ''));
+    $text = trim((string) ($data['choices'][0]['message']['content'] ?? ''));
     if ($text === '') {
-        throw new RuntimeException('Gemini không trả về nội dung mô tả.');
+        throw new RuntimeException('Groq không trả về nội dung mô tả.');
     }
 
     return $text;
