@@ -63,12 +63,46 @@ if (is_post_request()) {
         try {
             $pdo->beginTransaction(); // Bắt đầu Transaction
 
-            // 1. Lưu bảng hotels (Đã sửa 'stars' thành 'star_rating' và xóa 'facilities')
-            $sql_hotel = "INSERT INTO hotels (name, vibe, address, phone, star_rating, description) 
-                          VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql_hotel);
-            $stmt->execute([$name, $vibe, $address, $phone, $stars, $description]);
-            $hotel_id = $pdo->lastInsertId();
+            // Tìm ID nhỏ nhất đang bị thiếu
+$sql_find_id = "
+    SELECT MIN(candidate_id)
+    FROM (
+        SELECT 1 AS candidate_id
+
+        UNION
+
+        SELECT id + 1 AS candidate_id
+        FROM hotels
+    ) AS candidates
+    LEFT JOIN hotels h ON h.id = candidates.candidate_id
+    WHERE h.id IS NULL
+";
+
+$hotel_id = (int) $pdo->query($sql_find_id)->fetchColumn();
+
+// Thêm khách sạn bằng ID nhỏ nhất còn trống
+$sql_hotel = "
+    INSERT INTO hotels (
+        id,
+        name,
+        vibe,
+        address,
+        phone,
+        star_rating,
+        description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+";
+
+$stmt = $pdo->prepare($sql_hotel);
+$stmt->execute([
+    $hotel_id,
+    $name,
+    $vibe,
+    $address,
+    $phone,
+    $stars,
+    $description
+]);
 
             // 2. Lưu bảng rooms
             $stmt_room = $pdo->prepare("INSERT INTO rooms (hotel_id, capacity, price) VALUES (?, ?, ?)");
