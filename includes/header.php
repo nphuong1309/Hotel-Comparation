@@ -1,4 +1,10 @@
-<?php /** HEADER.PHP: mở HTML, nạp CSS chung và dựng navbar theo trạng thái đăng nhập. */ ?>
+<?php
+/** HEADER.PHP: mở HTML, nạp design system và dựng navbar theo trạng thái đăng nhập. */
+$pageName = pathinfo((string) ($_SERVER['SCRIPT_NAME'] ?? ''), PATHINFO_FILENAME);
+$pageName = preg_replace('/[^a-z0-9_-]/i', '', $pageName) ?: 'page';
+$isHomePage = $pageName === 'index';
+$isFullWidthPage = in_array($pageName, ['index', 'detail'], true);
+?>
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -8,13 +14,14 @@
     <!-- Cầu nối dữ liệu động duy nhất PHP truyền cho script.js. -->
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <title>JoyTix - Khám phá khách sạn Cần Thơ</title>
-    <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Lato:wght@300;400;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Lato:wght@300;400;700;900&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= e(asset_url('css/base.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset_url($isHomePage ? 'css/home.css' : 'css/pages.css')) ?>">
 </head>
 
-<body>
+<body class="page-<?= e($pageName) ?>">
     <header class="navbar">
         <div class="container nav-content">
             <h1 class="logo">
@@ -55,4 +62,4 @@
         </div>
     </header>
 
-    <main class="container">
+    <main class="site-main<?= $isFullWidthPage ? ' site-main--full' : ' container' ?>">

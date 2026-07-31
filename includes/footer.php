@@ -89,6 +89,6 @@
         <p>JoyTix. 2026 Đã đăng ký bản quyền.</p>
     </div>
 </footer>
-<script src="js/script.js"></script>
+<script src="<?= e(asset_url('js/script.js')) ?>"></script>
 </body>
 </html>

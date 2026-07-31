@@ -132,10 +132,16 @@ function logout_current_user(): never
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $action === 'register' ? 'Đăng ký' : 'Đăng nhập' ?> - JoyTix</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Lato:wght@300;400;700;900&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= e(asset_url('css/base.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset_url('css/pages.css')) ?>">
 </head>
 <body class="auth-page">
     <div class="auth-card">
+        <a href="index.php" class="auth-brand" aria-label="JoyTix - Trang chủ">Joy<span>Tix</span></a>
+        <p class="auth-eyebrow">Hành trình Cần Thơ bắt đầu tại đây</p>
         <h2><?= $action === 'register' ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập' ?></h2>
 
         <?php if ($error): ?><p class="form-error"><?= e($error) ?></p><?php endif; ?>

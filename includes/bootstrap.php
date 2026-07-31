@@ -18,6 +18,27 @@ function e(mixed $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/**
+ * Gắn thời điểm sửa file vào URL để trình duyệt không giữ CSS/JS cũ sau khi triển khai.
+ */
+function asset_url(string $relativePath): string
+{
+    $relativePath = ltrim(str_replace('\\', '/', $relativePath), '/');
+    if ($relativePath === '' || str_contains($relativePath, '..')) {
+        return $relativePath;
+    }
+
+    $absolutePath = dirname(__DIR__)
+        . DIRECTORY_SEPARATOR
+        . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+
+    if (!is_file($absolutePath)) {
+        return $relativePath;
+    }
+
+    return $relativePath . '?v=' . filemtime($absolutePath);
+}
+
 function is_post_request(): bool
 {
     return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';

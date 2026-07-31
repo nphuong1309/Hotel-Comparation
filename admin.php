@@ -86,31 +86,32 @@ require_once 'includes/header.php';
     <a href="adminadd.php" class="btn-primary">+ Thêm Khách Sạn Mới</a>
 </div>
 
-<table class="compare-table">
-    <tr>
-        <th>ID</th>
-        <th>Tên Khách Sạn</th>
-        <th>Vị Trí</th>
-        <th>Vibe</th>
-        <th>Hành động</th>
-    </tr>
-    <?php foreach ($hotels as $h): ?>
+<div class="table-responsive">
+    <table class="admin-table">
         <tr>
-            <td><?= $h['id'] ?></td>
-            <td><b><?= htmlspecialchars($h['name']) ?></b></td>
-            <td><?= htmlspecialchars($h['address']) ?></td>
-            <td><?= htmlspecialchars($h['vibe']) ?></td>
-            <td>
-                <!-- Nút sửa (có thể phát triển sau) và nút Xóa -->
-                <a href="edit_hotel.php?id=<?= $h['id'] ?>" class="btn-outline">Sửa</a>
-                <form method="POST" class="inline-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="hotel_id" value="<?= (int) $h['id'] ?>">
-                    <button type="submit" name="delete_hotel" class="btn-outline btn-danger">Xóa</button>
-                </form>
-            </td>
+            <th>ID</th>
+            <th>Tên khách sạn</th>
+            <th>Vị trí</th>
+            <th>Phong cách</th>
+            <th>Hành động</th>
         </tr>
-    <?php endforeach; ?>
-</table>
+        <?php foreach ($hotels as $h): ?>
+            <tr>
+                <td><?= $h['id'] ?></td>
+                <td><b><?= htmlspecialchars($h['name']) ?></b></td>
+                <td><?= htmlspecialchars($h['address']) ?></td>
+                <td><?= htmlspecialchars($h['vibe']) ?></td>
+                <td>
+                    <a href="edit_hotel.php?id=<?= $h['id'] ?>" class="btn-outline">Sửa</a>
+                    <form method="POST" class="inline-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="hotel_id" value="<?= (int) $h['id'] ?>">
+                        <button type="submit" name="delete_hotel" class="btn-outline btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+</div>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -65,6 +65,8 @@ $sql = "SELECT
             h.name,
             h.address,
             h.vibe,
+            h.description,
+            h.star_rating,
             MIN(r.price) AS price
         FROM hotels h
         INNER JOIN rooms r ON r.hotel_id = h.id
@@ -105,7 +107,9 @@ $sql .= "
             h.id,
             h.name,
             h.address,
-            h.vibe
+            h.vibe,
+            h.description,
+            h.star_rating
         ORDER BY
             price ASC,
             h.name ASC";
@@ -135,269 +139,89 @@ unset($hotelResult);
 
 require_once 'includes/header.php';
 ?>
-<style>
-/* Chỉ áp dụng cho phần kết quả tìm kiếm trong search.php. */
-.search-results-section {
-    margin-top: 38px;
-}
-
-.search-results-section > h2 {
-    margin: 0 0 28px;
-    color: #4b2342 !important;
-    font-size: clamp(30px, 3.2vw, 42px);
-    line-height: 1.2;
-}
-
-.search-results-section .search-criteria-summary {
-    margin-bottom: 34px;
-    padding: 0;
-    overflow: hidden;
-    border: 0;
-    border-left: 8px solid #542548;
-    border-radius: 14px 0 0 14px;
-    background: #fff;
-    color: #555;
-    box-shadow: none;
-}
-
-.search-results-section .search-main-criteria {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0;
-    padding: 27px 38px 25px;
-    border-bottom: 1px solid #eadfd8;
-    font-size: 18px;
-    line-height: 1.55;
-}
-
-.search-results-section .search-main-criteria strong {
-    margin-left: 9px;
-    color: #444;
-    font-weight: 700;
-}
-
-.search-results-section .criteria-separator {
-    margin: 0 22px;
-    color: #baadb7;
-}
-
-.search-results-section .selected-amenities-section {
-    padding: 29px 38px 34px;
-}
-
-.search-results-section .selected-amenities-title {
-    margin-bottom: 24px;
-    color: #262626;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.3;
-}
-
-.search-results-section .selected-amenities-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 88px;
-    row-gap: 20px;
-}
-
-.search-results-section .selected-amenity-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-    color: #333;
-    font-size: 18px;
-    line-height: 1.45;
-}
-
-.search-results-section .selected-amenity-icon {
-    width: 22px !important;
-    height: 22px !important;
-    flex: 0 0 22px;
-    display: block;
-    fill: none !important;
-    stroke: #555 !important;
-    stroke-width: 1.7 !important;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.search-results-section .selected-amenity-name {
-    min-width: 0;
-    overflow-wrap: anywhere;
-}
-
-.search-results-section .no-selected-amenity {
-    margin: 0;
-    padding: 28px 38px 32px;
-    color: #777;
-}
-
-@media (max-width: 700px) {
-    .search-results-section > h2 {
-        margin-bottom: 22px;
-        font-size: 31px;
-    }
-
-    .search-results-section .search-main-criteria {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 22px 24px;
-    }
-
-    .search-results-section .search-main-criteria strong {
-        margin: 2px 0 9px;
-    }
-
-    .search-results-section .criteria-separator {
-        display: none;
-    }
-
-    .search-results-section .selected-amenities-section {
-        padding: 24px;
-    }
-
-    .search-results-section .selected-amenities-list {
-        grid-template-columns: 1fr;
-        row-gap: 16px;
-    }
-}
-</style>
-<section class="hotel-list-section search-results-section">
-    <h2>Kết quả gợi ý phù hợp nhất</h2>
+<section class="search-results-section">
+    <header class="page-heading search-page-heading">
+        <div>
+            <p class="page-eyebrow">Lựa chọn dành riêng cho bạn</p>
+            <h1>Kết quả phù hợp nhất</h1>
+            <p class="page-lead"><?= count($results) ?> khách sạn đáp ứng các tiêu chí đã chọn.</p>
+        </div>
+        <a href="index.php#smartSearchForm" class="btn-outline">Điều chỉnh tìm kiếm</a>
+    </header>
 
     <div class="search-criteria-summary">
-
-        <!-- Số người và ngân sách -->
         <div class="search-main-criteria">
-            <span>Bạn đang tìm:</span>
-
-            <strong>
-                <?= (int) $capacity ?> người
-            </strong>
-
-            <span class="criteria-separator">|</span>
-
-            <span>Ngân sách tối đa:</span>
-
-            <strong>
-                <?= number_format((float) $budget) ?> đ/đêm
-            </strong>
+            <div class="criteria-item">
+                <span>Số khách</span>
+                <strong><?= (int) $capacity ?> người</strong>
+            </div>
+            <div class="criteria-item">
+                <span>Ngân sách tối đa</span>
+                <strong><?= number_format((float) $budget) ?> đ/đêm</strong>
+            </div>
         </div>
 
-        <!-- Danh sách tiện nghi đã chọn -->
-        <?php if ($selectedAmenities): ?>
-            <div class="selected-amenities-section">
-
-                <div class="selected-amenities-title">
-                    Tiện nghi đã chọn
-                </div>
-
+        <div class="selected-amenities-section">
+            <div class="selected-amenities-title">Tiện nghi yêu cầu</div>
+            <?php if ($selectedAmenities): ?>
                 <div class="selected-amenities-list">
-
                     <?php foreach ($selectedAmenities as $amenityId): ?>
-                        <?php
-                        $amenity = $amenityMap[$amenityId];
-                        ?>
-
+                        <?php $amenity = $amenityMap[$amenityId]; ?>
                         <div class="selected-amenity-item">
-
                             <?= amenity_icon_svg($amenity['icon'], 'selected-amenity-icon') ?>
-
-                            <span class="selected-amenity-name">
-                                <?= htmlspecialchars(
-                                    $amenity['name']
-                                ) ?>
-                            </span>
-
+                            <span class="selected-amenity-name"><?= htmlspecialchars($amenity['name']) ?></span>
                         </div>
                     <?php endforeach; ?>
-
                 </div>
-            </div>
-        <?php else: ?>
-
-            <p class="no-selected-amenity">
-                Không yêu cầu tiện nghi cụ thể.
-            </p>
-
-        <?php endif; ?>
-
+            <?php else: ?>
+                <p class="no-selected-amenity">Không yêu cầu tiện nghi cụ thể.</p>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <!-- Danh sách kết quả khách sạn -->
-    <div class="hotel-grid">
-
-        <?php if ($results): ?>
-
+    <?php if ($results): ?>
+        <div class="hotel-list-modern search-hotel-list">
             <?php foreach ($results as $hotel): ?>
-
-                <article class="hotel-card">
-
-                    <img
-                        src="<?= htmlspecialchars($hotel['image_url'], ENT_QUOTES, 'UTF-8') ?>"
-                        alt="<?= htmlspecialchars($hotel['name'], ENT_QUOTES, 'UTF-8') ?>"
-                        loading="lazy"
-                        onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
-                    >
-
-                    <div class="card-content">
-
-                        <h3>
-                            <?= htmlspecialchars($hotel['name']) ?>
-                        </h3>
-
-                        <p class="hotel-address">
-                            📍 <?= htmlspecialchars($hotel['address']) ?>
-                        </p>
-
-                        <p class="price">
-                            Mức giá phù hợp:
-                            <?= number_format(
-                                (float) $hotel['price']
-                            ) ?> đ
-                        </p>
-
-                        <div class="card-actions search-result-actions">
-
-                            <a
-                                href="detail.php?id=<?=
-                                    (int) $hotel['id']
-                                ?>"
-                                class="btn-primary search-detail-link"
-                            >
-                                Xem chi tiết
-                            </a>
-
-                        </div>
+                <?php $rating = max(0, min(5, (float) ($hotel['star_rating'] ?? 0))); ?>
+                <article class="hotel-modern-card">
+                    <div class="hotel-modern-image-wrap">
+                        <img
+                            class="hotel-modern-image"
+                            src="<?= htmlspecialchars($hotel['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($hotel['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            loading="lazy"
+                            onerror="this.onerror=null;this.src='uploads/default-hotel.jpg';"
+                        >
+                        <div class="hotel-price-ribbon">Từ <?= number_format((float) $hotel['price']) ?> đ</div>
+                        <div class="hotel-star-badge">★ <?= number_format($rating, 1, ',', '.') ?></div>
                     </div>
 
+                    <div class="hotel-modern-body">
+                        <div class="hotel-meta">
+                            <span class="hotel-meta-item">Cần Thơ</span>
+                            <span class="hotel-meta-item"><?= htmlspecialchars($hotel['vibe'] ?: 'Đang cập nhật') ?></span>
+                        </div>
+                        <h2 class="hotel-modern-title"><?= htmlspecialchars($hotel['name']) ?></h2>
+                        <p class="hotel-modern-description">
+                            <?= htmlspecialchars($hotel['description'] ?: 'Khách sạn đang cập nhật phần giới thiệu và thông tin nổi bật.') ?>
+                        </p>
+                        <p class="hotel-modern-address">
+                            <strong>Địa chỉ:</strong> <?= htmlspecialchars($hotel['address'] ?: 'Chưa cập nhật') ?>
+                        </p>
+                        <div class="hotel-modern-actions search-result-actions">
+                            <a href="detail.php?id=<?= (int) $hotel['id'] ?>" class="hotel-detail-link search-detail-link">Xem chi tiết</a>
+                        </div>
+                    </div>
                 </article>
-
             <?php endforeach; ?>
-
-        <?php else: ?>
-
-            <div class="empty-search-result">
-
-                <p>
-                    Rất tiếc, không có khách sạn nào đáp ứng
-                    đầy đủ các tiêu chí đã chọn.
-                </p>
-
-                <a
-                    href="index.php"
-                    class="btn-outline empty-search-link"
-                >
-                    &laquo; Thay đổi tiêu chí tìm kiếm
-                </a>
-
-            </div>
-
-        <?php endif; ?>
-
-    </div>
+        </div>
+    <?php else: ?>
+        <div class="empty-search-result">
+            <h2>Chưa tìm thấy lựa chọn phù hợp</h2>
+            <p>Hãy tăng ngân sách hoặc giảm số tiện nghi bắt buộc để xem thêm khách sạn.</p>
+            <a href="index.php#smartSearchForm" class="btn-primary empty-search-link">Thay đổi tiêu chí tìm kiếm</a>
+        </div>
+    <?php endif; ?>
 </section>
 
 <?php require_once 'includes/footer.php'; ?>
