@@ -2,8 +2,6 @@
 
 Ứng dụng PHP 8.2 + MySQL dùng để tìm kiếm, so sánh và quản lý khách sạn; người dùng có thể đăng bài, bình luận và thích bài trong trang cộng đồng.
 
-Tài liệu chi tiết về nhiệm vụ từng file, luồng dữ liệu và quan hệ giữa các thành phần nằm trong [`TAI_LIEU_KIEN_TRUC.md`](TAI_LIEU_KIEN_TRUC.md).
-
 ## Cài đặt
 
 1. Bật Apache và MySQL trong XAMPP.
@@ -23,7 +21,7 @@ HOTELTOOL_SERPAPI_KEY=your_key_here
 
 Với Apache, có thể khai báo bằng `SetEnv` trong cấu hình virtual host rồi khởi động lại Apache. Không commit khóa API hoặc mật khẩu thật vào repository.
 
-Nếu nâng cấp một database đang chạy từ phiên bản cũ, sao lưu database rồi chạy `migrations/20260717_hardening.sql` đúng một lần. Database import mới đã có sẵn các ràng buộc này.
+Nếu nâng cấp một database đang chạy từ phiên bản cũ, hãy sao lưu database rồi chạy các migration chưa áp dụng theo thứ tự tên file. Database import mới đã có sẵn schema chuẩn hóa.
 
 ## Kiểm tra nhanh
 

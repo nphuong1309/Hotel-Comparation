@@ -113,7 +113,6 @@ CREATE TABLE `feed_posts` (
   `author_id` int(11) DEFAULT NULL,
   `hotel_id` int(11) DEFAULT NULL COMMENT 'Khách sạn được review',
   `content` text NOT NULL,
-  `image_url` varchar(255) DEFAULT NULL,
   `likes_count` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -122,11 +121,11 @@ CREATE TABLE `feed_posts` (
 -- Đang đổ dữ liệu cho bảng `feed_posts`
 --
 
-INSERT INTO `feed_posts` (`id`, `author_name`, `author_id`, `hotel_id`, `content`, `image_url`, `likes_count`, `created_at`) VALUES
-(1, 'nganphuong', NULL, 3, 'phòng ok', 'uploads/post_1784098198_2.jpg', 2, '2026-07-15 06:49:58'),
-(2, 'phuong', NULL, 1, 'Vừa qua nhà mình có chuyến đi tới Cần Thơ, phân vân không biết lựa khách sạn nào tại cũng lần đầu tới miền Tây, may mà có trang web này hỗ trợ so sánh tìm kiếm được khách sạn Mường Thanh này vừa đúng nhu cầu mà nhanh gọn luôn không cần phải đi lựa nhiều trang web. Phòng ốc sạch sẽ, có bữa sáng ngon và đậm chất miền Tây lắm. Vị trí cũng gần bến Ninh Kiều, buổi tối đi chơi cũng gần và ngắm cảnh đêm từ khách sạn rất đẹp.', 'uploads/post_1784102373_4.jpg', 2, '2026-07-15 07:59:33'),
-(3, 'nnnnnn', NULL, 1, 'Rất đẹp và sang trọng, giá hơi cao nhưng dịch vụ rất ok.\r\nNhược điểm là tôi chưa được đi bao giờ', NULL, 0, '2026-07-15 08:04:20'),
-(7, 'phuong', 4, NULL, 'ksan này oke nha đồ ăn ngon', NULL, 0, '2026-07-15 08:18:19');
+INSERT INTO `feed_posts` (`id`, `author_name`, `author_id`, `hotel_id`, `content`, `likes_count`, `created_at`) VALUES
+(1, 'nganphuong', NULL, 3, 'phòng ok', 2, '2026-07-15 06:49:58'),
+(2, 'phuong', NULL, 1, 'Vừa qua nhà mình có chuyến đi tới Cần Thơ, phân vân không biết lựa khách sạn nào tại cũng lần đầu tới miền Tây, may mà có trang web này hỗ trợ so sánh tìm kiếm được khách sạn Mường Thanh này vừa đúng nhu cầu mà nhanh gọn luôn không cần phải đi lựa nhiều trang web. Phòng ốc sạch sẽ, có bữa sáng ngon và đậm chất miền Tây lắm. Vị trí cũng gần bến Ninh Kiều, buổi tối đi chơi cũng gần và ngắm cảnh đêm từ khách sạn rất đẹp.', 2, '2026-07-15 07:59:33'),
+(3, 'nnnnnn', NULL, 1, 'Rất đẹp và sang trọng, giá hơi cao nhưng dịch vụ rất ok.\r\nNhược điểm là tôi chưa được đi bao giờ', 0, '2026-07-15 08:04:20'),
+(7, 'phuong', 4, NULL, 'ksan này oke nha đồ ăn ngon', 0, '2026-07-15 08:18:19');
 
 -- --------------------------------------------------------
 
@@ -493,7 +492,7 @@ ALTER TABLE `feed_posts`
 --
 ALTER TABLE `feed_post_images`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `post_id` (`post_id`);
+  ADD UNIQUE KEY `uq_feed_post_images_post_url` (`post_id`,`image_url`);
 
 --
 -- Chỉ mục cho bảng `feed_post_likes`
