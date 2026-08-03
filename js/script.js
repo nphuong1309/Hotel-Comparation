@@ -9,12 +9,40 @@
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 document.addEventListener('DOMContentLoaded', () => {
+    initSiteNavigation();
     initHomePage();
     initHotelDetailPage();
     initCommunityPage();
     initAdminAddPage();
     initGenericCardInteractions();
 });
+
+/** Điều hướng dùng chung: menu gọn trên mobile và tự đóng sau khi chọn trang. */
+function initSiteNavigation() {
+    const toggle = document.querySelector('.nav-toggle');
+    const navigation = document.getElementById('primaryNavigation');
+    if (!toggle || !navigation) return;
+
+    const closeNavigation = () => {
+        navigation.classList.remove('is-open');
+        toggle.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Mở menu');
+    };
+
+    toggle.addEventListener('click', () => {
+        const willOpen = !navigation.classList.contains('is-open');
+        navigation.classList.toggle('is-open', willOpen);
+        toggle.classList.toggle('is-open', willOpen);
+        toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', willOpen ? 'Đóng menu' : 'Mở menu');
+    });
+
+    navigation.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNavigation));
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 760) closeNavigation();
+    });
+}
 
 /** Trang chủ: banner, ngân sách, tiện nghi, ảnh card và so sánh. */
 function initHomePage() {
@@ -47,7 +75,7 @@ function initHomePage() {
         const max = Number(budgetRange.max);
         const value = Number(budgetRange.value);
         const percent = ((value - min) / (max - min)) * 100;
-        budgetRange.style.background = `linear-gradient(to right, #ead2bb 0%, #c58b56 ${percent}%, #fff ${percent}%, #fff 100%)`;
+        budgetRange.style.background = `linear-gradient(to right, #a77b5d 0%, #a77b5d ${percent}%, #e5dad0 ${percent}%, #e5dad0 100%)`;
         if (budgetValue) budgetValue.textContent = value.toLocaleString('vi-VN');
     };
     if (budgetRange) {
@@ -210,6 +238,7 @@ function initCommunityPage() {
                 wrapper.className = 'preview-item';
                 const image = document.createElement('img');
                 image.src = event.target.result;
+                image.alt = 'Ảnh xem trước';
                 wrapper.appendChild(image);
                 preview.appendChild(wrapper);
             };
@@ -262,11 +291,11 @@ window.deletePost = async (postId, button) => {
         if (!response.ok || !data.success) throw new Error(data.message || 'Không thể xóa bài.');
         const card = button.closest('.post-card');
         card.classList.add('post-removing');
-        card.addEventListener('animationend', () => card.remove(), { once: true });
+        window.setTimeout(() => card.remove(), 240);
     } catch (error) {
         window.alert(error.message || 'Lỗi kết nối. Vui lòng thử lại.');
         button.disabled = false;
-        button.textContent = '🗑️ Xóa bài đăng';
+        button.textContent = 'Xóa bài đăng';
     }
 };
 

@@ -74,7 +74,7 @@ if ($is_logged_in && isset($_POST['submit_comment'])) {
 }
 
 // 3. LẤY DỮ LIỆU ĐỂ HIỂN THỊ
-$hotels = $pdo->query("SELECT id, name FROM hotels")->fetchAll(PDO::FETCH_ASSOC);
+$hotels = $pdo->query("SELECT id, name FROM hotels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $posts = $pdo->query("SELECT p.*, h.name as hotel_name FROM feed_posts p LEFT JOIN hotels h ON p.hotel_id = h.id ORDER BY p.id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Lấy danh sách ảnh cho các bài đăng
@@ -88,7 +88,11 @@ if (!empty($post_ids)) {
     $stmt_images->execute($post_ids);
     $images = $stmt_images->fetchAll(PDO::FETCH_ASSOC);
     foreach ($images as $img) {
-        $images_by_post[$img['post_id']][] = $img['image_url'];
+        $imagePath = ltrim(str_replace('\\', '/', trim((string) $img['image_url'])), '/');
+        $absoluteImagePath = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        if ($imagePath !== '' && !str_contains($imagePath, '..') && is_file($absoluteImagePath)) {
+            $images_by_post[$img['post_id']][] = $imagePath;
+        }
     }
 
     $stmt_comments = $pdo->prepare("SELECT * FROM feed_comments WHERE post_id IN ($placeholders) ORDER BY id ASC");
@@ -111,8 +115,21 @@ unset($_SESSION['flash_error']);
 require_once 'includes/header.php';
 ?>
 
-<!-- CSS thiết kế riêng cho trang Cộng đồng (Giống Insta/FB) -->
-<div class="feed-container">
+<section class="community-page">
+    <header class="community-hero">
+        <div class="community-hero__copy">
+            <p class="page-eyebrow">Góc nhìn từ người thật</p>
+            <h1>Cộng đồng JoyTix</h1>
+            <p>Cảm nhận, hình ảnh và những mẹo lưu trú thực tế từ cộng đồng yêu Cần Thơ.</p>
+        </div>
+        <div class="community-hero__stats" aria-label="Thống kê cộng đồng">
+            <div><strong><?= count($posts) ?></strong><span>Bài chia sẻ</span></div>
+            <div><strong><?= count($hotels) ?></strong><span>Điểm lưu trú</span></div>
+        </div>
+    </header>
+
+    <div class="community-layout">
+    <div class="community-feed">
     <?php if ($flashError): ?>
         <div class="alert alert-error"><?= e($flashError) ?></div>
     <?php endif; ?>
@@ -145,7 +162,7 @@ require_once 'includes/header.php';
         <!-- Nhắc nhở đăng nhập nếu là Khách vãng lai -->
         <div class="login-overlay">
             <h3 class="login-overlay__title">Bạn đã có một chuyến đi tuyệt vời?</h3>
-            <p class="login-overlay__description">Đăng nhập ngay để chia sẻ hình ảnh và bình luận cùng cộng đồng MiniHotel!</p>
+            <p class="login-overlay__description">Đăng nhập để chia sẻ hình ảnh, cảm nhận và trao đổi cùng cộng đồng JoyTix.</p>
             <a href="auth.php?action=login" class="btn-primary login-overlay__link">Đăng nhập để tham gia</a>
         </div>
     <?php endif; ?>
@@ -155,13 +172,13 @@ require_once 'includes/header.php';
     <div class="post-card" id="post-<?= (int) $post['id'] ?>">
         <!-- Header -->
         <div class="post-header">
-            <div class="avatar"><?= e(mb_strtoupper(mb_substr($post['author_name'], 0, 1))) ?></div>
-            <div>
+            <div class="avatar" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($post['author_name'], 0, 1))) ?></div>
+            <div class="post-author-copy">
                 <div class="author-name"><?= htmlspecialchars($post['author_name']) ?></div>
                 <div class="post-time">
                     <?= date('d/m/Y H:i', strtotime($post['created_at'])) ?>
                     <?php if($post['hotel_name']): ?>
-                        • Đang ở <a href="detail.php?id=<?= $post['hotel_id'] ?>" class="hotel-tag">📍 <?= htmlspecialchars($post['hotel_name']) ?></a>
+                        <span aria-hidden="true">·</span> Đang ở <a href="detail.php?id=<?= $post['hotel_id'] ?>" class="hotel-tag"><?= htmlspecialchars($post['hotel_name']) ?></a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -176,7 +193,7 @@ require_once 'includes/header.php';
             <div class="post-menu-wrap">
                 <button class="post-menu-btn" onclick="toggleMenu(<?= $post['id'] ?>, event)" title="Tùy chọn">⋯</button>
                 <div class="post-menu-dropdown" id="menu-<?= $post['id'] ?>">
-                    <button class="menu-item-delete" onclick="deletePost(<?= $post['id'] ?>, this)">🗑️ Xóa bài đăng</button>
+                    <button class="menu-item-delete" onclick="deletePost(<?= $post['id'] ?>, this)">Xóa bài đăng</button>
                 </div>
             </div>
             <?php endif; ?>
@@ -191,7 +208,7 @@ require_once 'includes/header.php';
                 <div class="post-images-slider" id="slider-<?= $post['id'] ?>">
                     <?php foreach ($post_images as $index => $img): ?>
                         <div class="slide-item">
-                            <img src="<?= htmlspecialchars($img) ?>" alt="Ảnh bài đăng <?= $index + 1 ?>">
+                            <img src="<?= e($img) ?>" alt="Ảnh bài đăng <?= $index + 1 ?>" loading="lazy" decoding="async">
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -219,14 +236,16 @@ require_once 'includes/header.php';
         <div class="post-actions">
             <?php if ($is_logged_in): ?>
                 <button class="btn-action btn-like <?= in_array((int) $post['id'], $liked_post_ids, true) ? 'is-liked' : '' ?>" data-id="<?= $post['id'] ?>" aria-pressed="<?= in_array((int) $post['id'], $liked_post_ids, true) ? 'true' : 'false' ?>">
-                    ❤️ <span class="like-count"><?= $post['likes_count'] ?></span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"></path></svg>
+                    <span class="action-label">Yêu thích</span> <span class="like-count"><?= $post['likes_count'] ?></span>
                 </button>
             <?php else: ?>
                 <button class="btn-action" onclick="alert('Vui lòng đăng nhập để thả tim!');">
-                    🤍 <span class="like-count"><?= $post['likes_count'] ?></span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"></path></svg>
+                    <span class="action-label">Yêu thích</span> <span class="like-count"><?= $post['likes_count'] ?></span>
                 </button>
             <?php endif; ?>
-            <span class="btn-action">💬 Bình luận</span>
+            <span class="btn-action"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg><span class="action-label">Bình luận</span> <?= count($comments_by_post[$post['id']] ?? []) ?></span>
         </div>
 
         <!-- Khu vực Comment -->
@@ -257,8 +276,40 @@ require_once 'includes/header.php';
         </div>
     </div>
     <?php endforeach; ?>
+    </div>
 
-</div>
+    <aside class="community-sidebar">
+        <section class="community-sidebar-card community-sidebar-card--accent">
+            <p class="page-eyebrow">Cùng nhau khám phá</p>
+            <h2>Mỗi trải nghiệm đều hữu ích</h2>
+            <p>Một góc nhìn thật có thể giúp người khác chọn nơi lưu trú phù hợp hơn.</p>
+            <?php if ($is_logged_in): ?>
+                <a href="#post_images" class="btn-primary">Viết bài chia sẻ</a>
+            <?php else: ?>
+                <a href="auth.php?action=register" class="btn-primary">Tham gia JoyTix</a>
+            <?php endif; ?>
+        </section>
+
+        <section class="community-sidebar-card">
+            <h2>Gợi ý khi chia sẻ</h2>
+            <ul class="community-tips">
+                <li>Nêu rõ điểm bạn thích và điều cần lưu ý.</li>
+                <li>Chọn ảnh rõ, đúng với trải nghiệm thực tế.</li>
+                <li>Tôn trọng người đăng và trao đổi lịch sự.</li>
+            </ul>
+        </section>
+
+        <section class="community-sidebar-card">
+            <h2>Khám phá khách sạn</h2>
+            <div class="community-hotel-links">
+                <?php foreach (array_slice($hotels, 0, 4) as $hotel): ?>
+                    <a href="detail.php?id=<?= (int) $hotel['id'] ?>"><span><?= e(mb_strtoupper(mb_substr($hotel['name'], 0, 1))) ?></span><?= e($hotel['name']) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    </aside>
+    </div>
+</section>
 
 <!-- Script xử lý nút Thả tim bằng AJAX -->
 

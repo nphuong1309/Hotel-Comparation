@@ -86,7 +86,7 @@
     </div>
 
     <div class="footer-bottom">
-        <p>JoyTix. 2026 Đã đăng ký bản quyền.</p>
+        <p>© 2026 JoyTix · Khám phá và so sánh khách sạn tại Cần Thơ.</p>
     </div>
 </footer>
 <script src="<?= e(asset_url('js/script.js')) ?>"></script>
