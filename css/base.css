@@ -819,12 +819,18 @@ textarea.community-composer__field {
 @media (max-width: 760px) {
     .container,
     .patel-shell,
-    .site-main {
+    .site-main:not(.site-main--full) {
         width: min(100% - 28px, var(--container));
     }
 
-    .site-main {
+    .site-main:not(.site-main--full) {
         padding-block: 38px 60px;
+    }
+
+    .site-main--full {
+        width: 100%;
+        max-width: none;
+        padding: 0;
     }
 
     .navbar .nav-content {

@@ -42,7 +42,8 @@ CREATE TABLE `hotels` (
   `star_rating` decimal(2,1) NOT NULL DEFAULT 3.0,
   `vibe` varchar(50) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_hotels_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `amenities` (
@@ -148,4 +149,3 @@ CREATE TABLE `feed_post_likes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
-

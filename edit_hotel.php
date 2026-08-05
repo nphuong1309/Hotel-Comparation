@@ -19,7 +19,7 @@ $amenitiesList = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
 // Xử lý khi bấm Lưu
 if (is_post_request()) {
     require_csrf();
-    $name        = trim((string) ($_POST['name'] ?? ''));
+    $name        = normalize_hotel_name((string) ($_POST['name'] ?? ''));
     $vibe        = trim((string) ($_POST['vibe'] ?? ''));
     $price_2     = positive_int($_POST['price_2'] ?? null) ?? 0;
     $price_4     = positive_int($_POST['price_4'] ?? null) ?? 0;
@@ -37,6 +37,9 @@ if (is_post_request()) {
 
     if (empty($name)) {
         $msg = "Tên không được bỏ trống!";
+        $msg_type = "error";
+    } elseif (hotel_name_exists($pdo, $name, $id)) {
+        $msg = "Khách sạn '{$name}' đã tồn tại. Vui lòng sử dụng tên khác!";
         $msg_type = "error";
     } elseif (empty($address)) {
         $msg = "Địa chỉ không được bỏ trống!";
@@ -107,7 +110,9 @@ if (is_post_request()) {
                 delete_upload_file($imagePath);
             }
             error_log('Hotel update failed: ' . $e->getMessage());
-            $msg = $e instanceof RuntimeException ? $e->getMessage() : 'Không thể cập nhật khách sạn lúc này.';
+            $msg = is_duplicate_hotel_name_error($e)
+                ? "Khách sạn '{$name}' đã tồn tại. Vui lòng sử dụng tên khác!"
+                : ($e instanceof RuntimeException ? $e->getMessage() : 'Không thể cập nhật khách sạn lúc này.');
             $msg_type = "error";
         }
     }

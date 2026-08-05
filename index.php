@@ -2,8 +2,14 @@
 /** INDEX.PHP: trang chủ, tìm kiếm nhanh, danh sách khách sạn và thanh so sánh. */
 require_once 'includes/bootstrap.php';
 
-$limit = 12;
-$offset = 0;
+$hotelsPerPage = 10;
+$totalHotels = (int) $pdo->query('SELECT COUNT(*) FROM hotels')->fetchColumn();
+$totalPages = max(1, (int) ceil($totalHotels / $hotelsPerPage));
+$currentPage = positive_int($_GET['page'] ?? null) ?? 1;
+$currentPage = min($currentPage, $totalPages);
+$offset = ($currentPage - 1) * $hotelsPerPage;
+$firstHotelNumber = $totalHotels > 0 ? $offset + 1 : 0;
+$lastHotelNumber = min($offset + $hotelsPerPage, $totalHotels);
 
 /**
  * Lấy toàn bộ tiện nghi để dùng cho bộ lọc và khu vực "Our Services".
@@ -22,7 +28,7 @@ $amenityStmt = $pdo->query(
 $amenities = $amenityStmt->fetchAll(PDO::FETCH_ASSOC);
 
 /**
- * Lấy tối đa 12 khách sạn cùng giá thấp nhất và danh sách ảnh trong database.
+ * Lấy 10 khách sạn của trang hiện tại cùng giá thấp nhất và danh sách ảnh.
  * Giao diện vẫn tự ưu tiên ảnh vật lý trong thư mục uploads/ nếu có.
  */
 $sql = "SELECT
@@ -54,7 +60,7 @@ $sql = "SELECT
         LIMIT :limit OFFSET :offset";
 
 $stmt = $pdo->prepare($sql);
-$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':limit', $hotelsPerPage, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -346,6 +352,10 @@ require_once 'includes/header.php';
             <div class="hotel-showcase-heading">
                 <div class="patel-eyebrow">Lựa chọn nổi bật tại Cần Thơ</div>
                 <h2 class="patel-section-title">Tất cả khách sạn</h2>
+                <p class="hotel-showcase-summary">
+                    Hiển thị <?= $firstHotelNumber ?>–<?= $lastHotelNumber ?> trong tổng số
+                    <?= $totalHotels ?> khách sạn
+                </p>
             </div>
 
             <div class="hotel-list-modern">
@@ -436,6 +446,41 @@ require_once 'includes/header.php';
                     <p>Chưa có khách sạn để hiển thị.</p>
                 <?php endif; ?>
             </div>
+
+            <?php if ($totalPages > 1): ?>
+                <nav class="hotel-pagination" aria-label="Phân trang danh sách khách sạn">
+                    <?php if ($currentPage > 1): ?>
+                        <a
+                            href="index.php?page=<?= $currentPage - 1 ?>#hotel-showcase"
+                            class="hotel-pagination__direction"
+                            rel="prev"
+                        >← Trang trước</a>
+                    <?php else: ?>
+                        <span class="hotel-pagination__direction is-disabled" aria-disabled="true">← Trang trước</span>
+                    <?php endif; ?>
+
+                    <div class="hotel-pagination__pages">
+                        <?php for ($pageNumber = 1; $pageNumber <= $totalPages; $pageNumber++): ?>
+                            <a
+                                href="index.php?page=<?= $pageNumber ?>#hotel-showcase"
+                                class="hotel-pagination__page <?= $pageNumber === $currentPage ? 'is-current' : '' ?>"
+                                <?= $pageNumber === $currentPage ? 'aria-current="page"' : '' ?>
+                                aria-label="Trang <?= $pageNumber ?>"
+                            ><?= $pageNumber ?></a>
+                        <?php endfor; ?>
+                    </div>
+
+                    <?php if ($currentPage < $totalPages): ?>
+                        <a
+                            href="index.php?page=<?= $currentPage + 1 ?>#hotel-showcase"
+                            class="hotel-pagination__direction"
+                            rel="next"
+                        >Trang sau →</a>
+                    <?php else: ?>
+                        <span class="hotel-pagination__direction is-disabled" aria-disabled="true">Trang sau →</span>
+                    <?php endif; ?>
+                </nav>
+            <?php endif; ?>
         </div>
     </section>
 

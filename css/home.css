@@ -270,6 +270,73 @@
     text-align: center;
 }
 
+.hotel-showcase-summary {
+    margin: 12px 0 0;
+    color: var(--color-muted);
+    font-size: 0.92rem;
+}
+
+.hotel-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 42px;
+}
+
+.hotel-pagination__pages {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hotel-pagination__direction,
+.hotel-pagination__page {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--color-brand);
+    font-family: var(--font-label);
+    font-size: 0.82rem;
+    font-weight: 800;
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.hotel-pagination__direction {
+    min-width: 126px;
+    padding: 10px 16px;
+}
+
+.hotel-pagination__page {
+    width: 44px;
+    padding: 8px;
+}
+
+.hotel-pagination__direction:hover,
+.hotel-pagination__page:hover,
+.hotel-pagination__page.is-current {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.hotel-pagination__page.is-current {
+    pointer-events: none;
+}
+
+.hotel-pagination__direction.is-disabled {
+    border-color: transparent;
+    background: var(--color-surface-soft);
+    color: var(--color-muted);
+    cursor: not-allowed;
+    opacity: 0.62;
+}
+
 .patel-section-title {
     margin: 0;
     color: var(--color-heading);
@@ -470,6 +537,16 @@
     .hotel-showcase,
     .services-modern {
         padding-block: 72px;
+    }
+
+    .hotel-pagination {
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 32px;
+    }
+
+    .hotel-pagination__direction {
+        min-width: 118px;
     }
 
     .hotel-modern-actions,

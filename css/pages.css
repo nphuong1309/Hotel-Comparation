@@ -1251,6 +1251,30 @@
     min-width: 820px;
 }
 
+.admin-table__actions-cell {
+    width: 1%;
+    min-width: 190px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.admin-table__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+}
+
+.admin-table__action {
+    width: 82px;
+    min-height: 44px;
+    padding: 10px 14px;
+}
+
+.admin-table__actions .inline-form {
+    flex: 0 0 auto;
+}
+
 .admin-page-heading {
     display: flex;
     align-items: flex-end;

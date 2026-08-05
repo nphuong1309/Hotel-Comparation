@@ -26,7 +26,7 @@ try {
 
 if (is_post_request()) {
     require_csrf();
-    $name        = trim((string) ($_POST['name'] ?? ''));
+    $name        = normalize_hotel_name((string) ($_POST['name'] ?? ''));
     $price_2     = positive_int($_POST['price_2'] ?? null) ?? 0;
     $price_4     = positive_int($_POST['price_4'] ?? null) ?? 0;
     $vibe        = trim((string) ($_POST['vibe'] ?? ''));
@@ -45,6 +45,9 @@ if (is_post_request()) {
     // Form Validation (Backend)
     if (empty($name)) {
         $msg = "Tên không được bỏ trống!";
+        $msgType = 'error';
+    } elseif (hotel_name_exists($pdo, $name)) {
+        $msg = "Khách sạn '{$name}' đã tồn tại. Vui lòng sử dụng tên khác!";
         $msgType = 'error';
     } elseif (empty($address)) {
         $msg = "Địa chỉ không được bỏ trống!";
@@ -136,7 +139,9 @@ $stmt->execute([
                 delete_upload_file($imagePath);
             }
             error_log('Hotel creation failed: ' . $e->getMessage());
-            $msg = $e instanceof RuntimeException ? $e->getMessage() : 'Không thể thêm khách sạn lúc này.';
+            $msg = is_duplicate_hotel_name_error($e)
+                ? "Khách sạn '{$name}' đã tồn tại. Vui lòng sử dụng tên khác!"
+                : ($e instanceof RuntimeException ? $e->getMessage() : 'Không thể thêm khách sạn lúc này.');
             $msgType = 'error';
         }
     }

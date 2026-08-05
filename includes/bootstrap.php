@@ -117,6 +117,48 @@ function positive_int(mixed $value): ?int
     return $value !== false && $value > 0 ? $value : null;
 }
 
+/** Chuẩn hóa tên khách sạn trước khi so sánh hoặc lưu vào database. */
+function normalize_hotel_name(string $name): string
+{
+    $normalized = preg_replace('/\s+/u', ' ', $name) ?? $name;
+    return trim($normalized);
+}
+
+/**
+ * Kiểm tra tên khách sạn đã được sử dụng hay chưa.
+ *
+ * $excludeHotelId được dùng ở trang sửa để không xem chính khách sạn hiện tại
+ * là một bản ghi trùng tên.
+ */
+function hotel_name_exists(PDO $pdo, string $name, ?int $excludeHotelId = null): bool
+{
+    $sql = 'SELECT 1 FROM hotels WHERE name = ?';
+    $params = [normalize_hotel_name($name)];
+
+    if ($excludeHotelId !== null) {
+        $sql .= ' AND id <> ?';
+        $params[] = $excludeHotelId;
+    }
+
+    $sql .= ' LIMIT 1';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return (bool) $stmt->fetchColumn();
+}
+
+/** Nhận diện lỗi unique key dành riêng cho tên khách sạn. */
+function is_duplicate_hotel_name_error(Throwable $exception): bool
+{
+    if (!$exception instanceof PDOException) {
+        return false;
+    }
+
+    $driverCode = (int) ($exception->errorInfo[1] ?? 0);
+    return $driverCode === 1062
+        && str_contains(strtolower($exception->getMessage()), 'uq_hotels_name');
+}
+
 function amenity_icon_svg(?string $icon, string $class = ''): string
 {
     static $icons = [

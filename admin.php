@@ -101,13 +101,15 @@ require_once 'includes/header.php';
                 <td><b><?= htmlspecialchars($h['name']) ?></b></td>
                 <td><?= htmlspecialchars($h['address']) ?></td>
                 <td><?= htmlspecialchars($h['vibe']) ?></td>
-                <td>
-                    <a href="edit_hotel.php?id=<?= $h['id'] ?>" class="btn-outline">Sửa</a>
-                    <form method="POST" class="inline-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="hotel_id" value="<?= (int) $h['id'] ?>">
-                        <button type="submit" name="delete_hotel" class="btn-outline btn-danger">Xóa</button>
-                    </form>
+                <td class="admin-table__actions-cell">
+                    <div class="admin-table__actions">
+                        <a href="edit_hotel.php?id=<?= $h['id'] ?>" class="btn-outline admin-table__action">Sửa</a>
+                        <form method="POST" class="inline-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách sạn này?');">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="hotel_id" value="<?= (int) $h['id'] ?>">
+                            <button type="submit" name="delete_hotel" class="btn-outline btn-danger admin-table__action">Xóa</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
         <?php endforeach; ?>
